@@ -7,7 +7,7 @@ public class ExpenseTracker {
     static Scanner sc = new Scanner(System.in);
     static final String FILE_NAME = "expenses.txt";
 
-    // hello
+    // hello world
 
     public static void main(String[] args) {
 
