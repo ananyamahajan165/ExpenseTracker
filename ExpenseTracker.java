@@ -5,143 +5,135 @@ public class ExpenseTracker {
 
     static ArrayList<Expense> expenses = new ArrayList<>();
     static Scanner sc = new Scanner(System.in);
-    static final String FILE_NAME = "expenses.txt";
-
-    // hello world
+    static final String FILE = "expenses.txt";
+    static int counter = 1;
 
     public static void main(String[] args) {
 
-        loadFromFile();   // 🔹 LOAD DATA AT START
+        loadFromFile();
 
         while (true) {
             System.out.println("\n===== EXPENSE TRACKER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
             System.out.println("3. View Total Expense");
-            System.out.println("4. Exit");
+            System.out.println("4. Delete Expense by ID");
+            System.out.println("5. Category-wise Total");
+            System.out.println("6. Exit");
 
-            int choice = readInt("Choose an option: ");
+            System.out.print("Choose option: ");
+            int choice = sc.nextInt();
 
             switch (choice) {
-                case 1:
-                    addExpense();
-                    saveToFile();   // 🔹 SAVE AFTER ADD
-                    break;
-                case 2:
-                    viewExpenses();
-                    break;
-                case 3:
-                    viewTotal();
-                    break;
-                case 4:
-                    saveToFile();
-                    System.out.println("Data saved. Goodbye!");
-                    return;
-                default:
-                    System.out.println("Invalid choice!");
+                case 1: addExpense(); saveToFile(); break;
+                case 2: viewExpenses(); break;
+                case 3: viewTotal(); break;
+                case 4: deleteExpense(); saveToFile(); break;
+                case 5: categoryTotal(); break;
+                case 6: System.out.println("Goodbye!"); return;
+                default: System.out.println("Invalid option!");
             }
         }
     }
 
-    // Safe integer reader from the console
-    static int readInt(String prompt) {
-        while (true) {
-            System.out.print(prompt);
-            String line = sc.nextLine();
-            try {
-                return Integer.parseInt(line.trim());
-            } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid integer.");
-            }
-        }
-    }
-
-    // Safe double reader from the console
-    static double readDouble(String prompt) {
-        while (true) {
-            System.out.print(prompt);
-            String line = sc.nextLine();
-            try {
-                return Double.parseDouble(line.trim());
-            } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid number.");
-            }
-        }
-    }
-
-    // ---------------- ADD EXPENSE ----------------
+    // ---------------- ADD ----------------
     static void addExpense() {
-        double amount = readDouble("Enter amount: ");
+        System.out.print("Amount: ");
+        double amount = sc.nextDouble();
+        sc.nextLine();
 
-        System.out.print("Enter category: ");
+        System.out.print("Category: ");
         String category = sc.nextLine();
 
-        System.out.print("Enter description: ");
-        String description = sc.nextLine();
+        System.out.print("Description: ");
+        String desc = sc.nextLine();
 
-        expenses.add(new Expense(amount, category, description));
-        System.out.println("Expense added successfully!");
+        System.out.print("Date (YYYY-MM-DD): ");
+        String date = sc.nextLine();
+
+        expenses.add(new Expense(counter++, amount, category, desc, date));
+        System.out.println("Expense added!");
     }
 
-    // ---------------- VIEW EXPENSES ----------------
+    // ---------------- VIEW ----------------
     static void viewExpenses() {
         if (expenses.isEmpty()) {
-            System.out.println("No expenses recorded.");
+            System.out.println("No expenses.");
             return;
         }
 
         for (Expense e : expenses) {
-            System.out.println("Amount: ₹" + e.amount +
-                    " | Category: " + e.category +
-                    " | Description: " + e.description);
+            System.out.println(
+                "ID: " + e.id +
+                " | ₹" + e.amount +
+                " | " + e.category +
+                " | " + e.description +
+                " | " + e.date
+            );
         }
     }
 
     // ---------------- TOTAL ----------------
     static void viewTotal() {
         double total = 0;
-        for (Expense e : expenses) {
-            total += e.amount;
-        }
+        for (Expense e : expenses) total += e.amount;
         System.out.println("Total Expense: ₹" + total);
     }
 
-    // ---------------- SAVE TO FILE ----------------
-    static void saveToFile() {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(FILE_NAME))) {
-            for (Expense e : expenses) {
-                pw.println(e.amount + "," + e.category + "," + e.description);
+    // ---------------- DELETE ----------------
+    static void deleteExpense() {
+        System.out.print("Enter ID to delete: ");
+        int id = sc.nextInt();
+
+        boolean removed = expenses.removeIf(e -> e.id == id);
+        if (removed) System.out.println("Expense deleted!");
+        else System.out.println("ID not found!");
+    }
+
+    // ---------------- CATEGORY TOTAL ----------------
+    static void categoryTotal() {
+        sc.nextLine();
+        System.out.print("Enter category: ");
+        String cat = sc.nextLine();
+
+        double total = 0;
+        for (Expense e : expenses) {
+            if (e.category.equalsIgnoreCase(cat)) {
+                total += e.amount;
             }
-        } catch (IOException e) {
-            System.out.println("Error saving file.");
+        }
+
+        System.out.println("Total for " + cat + ": ₹" + total);
+    }
+
+    // ---------------- SAVE ----------------
+    static void saveToFile() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(FILE))) {
+            for (Expense e : expenses) {
+                pw.println(e.id + "," + e.amount + "," + e.category + "," +
+                           e.description + "," + e.date);
+            }
+        } catch (Exception e) {
+            System.out.println("Error saving file");
         }
     }
 
-    // ---------------- LOAD FROM FILE ----------------
+    // ---------------- LOAD ----------------
     static void loadFromFile() {
-        File file = new File(FILE_NAME);
-        if (!file.exists()) return;
+        File f = new File(FILE);
+        if (!f.exists()) return;
 
-        try (Scanner fileScanner = new Scanner(file)) {
-            while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine();
-                // split into 3 parts so descriptions with commas are preserved
-                String[] parts = line.split(",", 3);
-                if (parts.length < 3) continue; // malformed line
+        try (Scanner fs = new Scanner(f)) {
+            while (fs.hasNextLine()) {
+                String[] p = fs.nextLine().split(",");
+                int id = Integer.parseInt(p[0]);
+                double amt = Double.parseDouble(p[1]);
 
-                try {
-                    double amount = Double.parseDouble(parts[0].trim());
-                    String category = parts[1].trim();
-                    String description = parts[2].trim();
-
-                    expenses.add(new Expense(amount, category, description));
-                } catch (NumberFormatException nfe) {
-                    // skip malformed amount lines
-                    continue;
-                }
+                expenses.add(new Expense(id, amt, p[2], p[3], p[4]));
+                counter = Math.max(counter, id + 1);
             }
         } catch (Exception e) {
-            System.out.println("Error loading file.");
+            System.out.println("Error loading file");
         }
     }
 }
