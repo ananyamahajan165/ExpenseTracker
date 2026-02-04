@@ -1,3 +1,1 @@
-1000.0,travel,travelled from chd to jammu
-1000.0,Travel,jammu
-12233.0,swimming,hatt
+2,1000.0,food,pizza party,2026-01-04
