@@ -24,13 +24,14 @@ public class ExpenseTracker {
                 System.out.println("1. Register");
                 System.out.println("2. Login");
                 System.out.println("3. Exit");
+                System.out.print("Choose option: ");
 
                 int ch = sc.nextInt();
                 switch (ch) {
                     case 1: register(); saveUsers(); break;
                     case 2: login(); break;
                     case 3: return;
-                    default: System.out.println("Invalid option");
+                    default: System.out.println("Invalid option!");
                 }
             } else {
                 expenseMenu();
@@ -41,6 +42,7 @@ public class ExpenseTracker {
     // ---------------- REGISTER ----------------
     static void register() {
         sc.nextLine();
+        System.out.println("\n--- Register New User ---");
         System.out.print("Choose username: ");
         String u = sc.nextLine();
 
@@ -48,12 +50,14 @@ public class ExpenseTracker {
         String p = sc.nextLine();
 
         users.add(new User(u, p));
-        System.out.println("User registered!");
+        System.out.println("User registered successfully!");
     }
 
     // ---------------- LOGIN ----------------
     static void login() {
         sc.nextLine();
+        System.out.println("\n--- User Login ---");
+
         System.out.print("Username: ");
         String u = sc.nextLine();
 
@@ -72,13 +76,14 @@ public class ExpenseTracker {
 
     // ---------------- EXPENSE MENU ----------------
     static void expenseMenu() {
-        System.out.println("\n=== EXPENSE MENU (" + loggedInUser + ") ===");
+        System.out.println("\n=== EXPENSE MENU ===");
+        System.out.println("Logged in as: " + loggedInUser);
         System.out.println("1. Add Expense");
         System.out.println("2. View My Expenses");
         System.out.println("3. Delete Expense by ID");
         System.out.println("4. View Total Expense");
         System.out.println("5. Logout");
-
+        System.out.print("Choose option: ");
         int ch = sc.nextInt();
 
         switch (ch) {
