@@ -96,7 +96,7 @@ public class ExpenseTracker {
         }
     }
 
-    // ---------------- ADD EXPENSE ----------------
+    // ---------------- ADD xEXPENSE ----------------
     static void addExpense() {
         System.out.print("Amount: ");
         double amt = sc.nextDouble();
