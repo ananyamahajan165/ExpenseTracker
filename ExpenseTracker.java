@@ -98,22 +98,39 @@ public class ExpenseTracker {
 
     // ---------------- ADD xEXPENSE ----------------
     static void addExpense() {
-        System.out.print("Amount: ");
-        double amt = sc.nextDouble();
-        sc.nextLine();
+    System.out.print("Amount: ");
+    double amt = sc.nextDouble();
+    sc.nextLine();
 
-        System.out.print("Category: ");
-        String cat = sc.nextLine();
+    System.out.print("Category: ");
+    String cat = sc.nextLine();
 
-        System.out.print("Description: ");
-        String desc = sc.nextLine();
+    System.out.print("Description: ");
+    String desc = sc.nextLine();
 
-        System.out.print("Date (YYYY-MM-DD): ");
-        String date = sc.nextLine();
+    System.out.print("Date (YYYY-MM-DD): ");
+    String date = sc.nextLine();
 
-        expenses.add(new Expense(counter++, loggedInUser, amt, cat, desc, date));
-        System.out.println("Expense added!");
+    String sql = "INSERT INTO expenses (user_id, amount, category, description, date) " +
+                 "VALUES ((SELECT id FROM users WHERE username=?), ?, ?, ?, ?)";
+
+    try (java.sql.Connection con = DBConnection.getConnection();
+         java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, loggedInUser);
+        ps.setDouble(2, amt);
+        ps.setString(3, cat);
+        ps.setString(4, desc);
+        ps.setDate(5, java.sql.Date.valueOf(date));
+
+        ps.executeUpdate();
+        System.out.println("✅ Expense saved in DATABASE");
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
+
 
     // ---------------- VIEW OWN EXPENSES ----------------
     static void viewMyExpenses() {
