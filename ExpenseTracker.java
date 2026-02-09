@@ -1,22 +1,11 @@
 import java.util.*;
-import java.io.*;
 
 public class ExpenseTracker {
 
-    static ArrayList<User> users = new ArrayList<>();
-    static ArrayList<Expense> expenses = new ArrayList<>();
-
     static Scanner sc = new Scanner(System.in);
     static String loggedInUser = null;
-    static int counter = 1;
-
-    static final String USER_FILE = "users.txt";
-    static final String EXPENSE_FILE = "expenses.txt";
 
     public static void main(String[] args) {
-
-        loadUsers();
-        loadExpenses();
 
         while (true) {
             if (loggedInUser == null) {
@@ -28,7 +17,7 @@ public class ExpenseTracker {
 
                 int ch = sc.nextInt();
                 switch (ch) {
-                    case 1: register(); saveUsers(); break;
+                    case 1: register(); break;
                     case 2: login(); break;
                     case 3: return;
                     default: System.out.println("Invalid option!");
@@ -41,38 +30,66 @@ public class ExpenseTracker {
 
     // ---------------- REGISTER ----------------
     static void register() {
-        sc.nextLine();
-        System.out.println("\n--- Register New User ---");
-        System.out.print("Choose username: ");
-        String u = sc.nextLine();
+    sc.nextLine();
+    System.out.println("\n--- Register New User ---");
 
-        System.out.print("Choose password: ");
-        String p = sc.nextLine();
+    System.out.print("Choose username: ");
+    String u = sc.nextLine();
 
-        users.add(new User(u, p));
-        System.out.println("User registered successfully!");
+    System.out.print("Choose password: ");
+    String p = sc.nextLine();
+
+    String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+
+    try (java.sql.Connection con = DBConnection.getConnection();
+         java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, u);
+        ps.setString(2, p);
+        ps.executeUpdate();
+
+        System.out.println("✅ User registered in DATABASE");
+
+    } catch (java.sql.SQLIntegrityConstraintViolationException e) {
+        System.out.println("❌ Username already exists!");
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
 
     // ---------------- LOGIN ----------------
     static void login() {
-        sc.nextLine();
-        System.out.println("\n--- User Login ---");
+    sc.nextLine();
+    System.out.println("\n--- User Login ---");
 
-        System.out.print("Username: ");
-        String u = sc.nextLine();
+    System.out.print("Username: ");
+    String u = sc.nextLine();
 
-        System.out.print("Password: ");
-        String p = sc.nextLine();
+    System.out.print("Password: ");
+    String p = sc.nextLine();
 
-        for (User user : users) {
-            if (user.username.equals(u) && user.password.equals(p)) {
-                loggedInUser = u;
-                System.out.println("Login successful!");
-                return;
-            }
+    String sql = "SELECT id FROM users WHERE username = ? AND password = ?";
+
+    try (java.sql.Connection con = DBConnection.getConnection();
+         java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, u);
+        ps.setString(2, p);
+
+        java.sql.ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            loggedInUser = u;
+            System.out.println("✅ Login successful!");
+        } else {
+            System.out.println("❌ Invalid credentials!");
         }
-        System.out.println("Invalid credentials!");
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
+
 
     // ---------------- EXPENSE MENU ----------------
     static void expenseMenu() {
@@ -87,9 +104,9 @@ public class ExpenseTracker {
         int ch = sc.nextInt();
 
         switch (ch) {
-            case 1: addExpense(); saveExpenses(); break;
+            case 1: addExpense(); break;
             case 2: viewMyExpenses(); break;
-            case 3: deleteExpense(); saveExpenses(); break;
+            case 3: deleteExpense(); break;
             case 4: viewTotal(); break;
             case 5: loggedInUser = null; break;
             default: System.out.println("Invalid option");
@@ -134,89 +151,97 @@ public class ExpenseTracker {
 
     // ---------------- VIEW OWN EXPENSES ----------------
     static void viewMyExpenses() {
-        boolean found = false;
-        for (Expense e : expenses) {
-            if (e.username.equals(loggedInUser)) {
-                System.out.println(
-                    "ID:" + e.id +
-                    " | ₹" + e.amount +
-                    " | " + e.category +
-                    " | " + e.description +
-                    " | " + e.date
-                );
-                found = true;
-            }
+
+    String sql =
+        "SELECT e.id, e.amount, e.category, e.description, e.date " +
+        "FROM expenses e " +
+        "JOIN users u ON e.user_id = u.id " +
+        "WHERE u.username = ?";
+
+    boolean found = false;
+
+    try (java.sql.Connection con = DBConnection.getConnection();
+         java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, loggedInUser);
+        java.sql.ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            System.out.println(
+                "ID:" + rs.getInt("id") +
+                " | ₹" + rs.getDouble("amount") +
+                " | " + rs.getString("category") +
+                " | " + rs.getString("description") +
+                " | " + rs.getDate("date")
+            );
+            found = true;
         }
-        if (!found) System.out.println("No expenses found.");
+
+        if (!found) {
+            System.out.println("No expenses found.");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
+
 
     // ---------------- DELETE ----------------
     static void deleteExpense() {
-        System.out.print("Enter ID to delete: ");
-        int id = sc.nextInt();
 
-        boolean removed = expenses.removeIf(
-            e -> e.id == id && e.username.equals(loggedInUser)
-        );
+    System.out.print("Enter ID to delete: ");
+    int id = sc.nextInt();
 
-        if (removed) System.out.println("Expense deleted!");
-        else System.out.println("Invalid ID!");
+    String sql =
+        "DELETE e FROM expenses e " +
+        "JOIN users u ON e.user_id = u.id " +
+        "WHERE e.id = ? AND u.username = ?";
+
+    try (java.sql.Connection con = DBConnection.getConnection();
+         java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setInt(1, id);
+        ps.setString(2, loggedInUser);
+
+        int rows = ps.executeUpdate();
+
+        if (rows > 0) {
+            System.out.println("✅ Expense deleted from DATABASE");
+        } else {
+            System.out.println("❌ Invalid ID or not your expense");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
+
 
     // ---------------- TOTAL ----------------
-    static void viewTotal() {
-        double total = 0;
-        for (Expense e : expenses) {
-            if (e.username.equals(loggedInUser)) {
-                total += e.amount;
-            }
+static void viewTotal() {
+
+    String sql =
+        "SELECT SUM(e.amount) AS total " +
+        "FROM expenses e " +
+        "JOIN users u ON e.user_id = u.id " +
+        "WHERE u.username = ?";
+
+    try (java.sql.Connection con = DBConnection.getConnection();
+         java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, loggedInUser);
+        java.sql.ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            double total = rs.getDouble("total");
+            System.out.println("Total Expense: ₹" + total);
+        } else {
+            System.out.println("Total Expense: ₹0");
         }
-        System.out.println("Total Expense: ₹" + total);
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
-
-    // ---------------- SAVE / LOAD USERS ----------------
-    static void saveUsers() {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(USER_FILE))) {
-            for (User u : users) {
-                pw.println(u.username + "," + u.password);
-            }
-        } catch (Exception e) {}
-    }
-
-    static void loadUsers() {
-        File f = new File(USER_FILE);
-        if (!f.exists()) return;
-
-        try (Scanner fs = new Scanner(f)) {
-            while (fs.hasNextLine()) {
-                String[] p = fs.nextLine().split(",");
-                users.add(new User(p[0], p[1]));
-            }
-        } catch (Exception e) {}
-    }
-
-    // ---------------- SAVE / LOAD EXPENSES ----------------
-    static void saveExpenses() {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(EXPENSE_FILE))) {
-            for (Expense e : expenses) {
-                pw.println(e.id + "," + e.username + "," + e.amount + "," +
-                           e.category + "," + e.description + "," + e.date);
-            }
-        } catch (Exception e) {}
-    }
-
-    static void loadExpenses() {
-        File f = new File(EXPENSE_FILE);
-        if (!f.exists()) return;
-
-        try (Scanner fs = new Scanner(f)) {
-            while (fs.hasNextLine()) {
-                String[] p = fs.nextLine().split(",");
-                int id = Integer.parseInt(p[0]);
-                expenses.add(new Expense(id, p[1],
-                        Double.parseDouble(p[2]), p[3], p[4], p[5]));
-                counter = Math.max(counter, id + 1);
-            }
-        } catch (Exception e) {}
-    }
+}
 }
