@@ -19,6 +19,7 @@ public class ExpenseTracker {
                 System.out.println("1. Register");
                 System.out.println("2. Login");
                 System.out.println("3. Forgot Password");
+                System.out.println("5. Change Password");
                 System.out.println("4. Exit");
 
                 System.out.println("3. Exit");
@@ -30,6 +31,8 @@ public class ExpenseTracker {
                     case 2: login(); break;
                     case 3: forgotPassword(); break;
                     case 4: return;
+                    case 5: changePassword(); break;
+
 
                     default: System.out.println("Invalid option!");
                 }
@@ -242,6 +245,39 @@ public class ExpenseTracker {
     try (FileWriter fw = new FileWriter(USER_FILE)) {
         for (String s : users) fw.write(s + "\n");
         System.out.println("✅ Password reset to default: 1234");
+    } catch (Exception e) {}
+}
+    static void changePassword() {
+    String oldPwd = readPassword("Enter old password: ");
+    String oldHash = hashPassword(oldPwd);
+
+    List<String> users = new ArrayList<>();
+    boolean updated = false;
+
+    try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] d = line.split("\\|");
+
+            if (d[0].equals(loggedInUser) && d[1].equals(oldHash)) {
+                String newPwd = readPassword("Enter new password: ");
+                String newHash = hashPassword(newPwd);
+                users.add(d[0] + "|" + newHash);
+                updated = true;
+            } else {
+                users.add(line);
+            }
+        }
+    } catch (Exception e) {}
+
+    if (!updated) {
+        System.out.println("❌ Old password incorrect");
+        return;
+    }
+
+    try (FileWriter fw = new FileWriter(USER_FILE)) {
+        for (String u : users) fw.write(u + "\n");
+        System.out.println("✅ Password changed successfully");
     } catch (Exception e) {}
 }
 
