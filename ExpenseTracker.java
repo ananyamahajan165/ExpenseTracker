@@ -11,36 +11,58 @@ public class ExpenseTracker {
     static final String EXPENSE_FILE = "expenses.txt";
     static final String BUDGET_FILE = "budget.txt";
 
-
     // ================= MAIN =================
     public static void main(String[] args) {
 
         while (true) {
             if (loggedInUser == null) {
-                System.out.println("\n=== USER MENU ===");
-                System.out.println("1. Register");
-                System.out.println("2. Login");
-                System.out.println("3. Forgot Password");
-                System.out.println("5. Change Password");
-                System.out.println("4. Exit");
-                System.out.println("6. Set Monthly Budget");
-
-                int ch = readInt("Choose option: ");
-
-                switch (ch) {
-                    case 1: register(); break;
-                    case 2: login(); break;
-                    case 3: forgotPassword(); break;
-                    case 4: return;
-                    case 5: changePassword(); break;
-                    case 6: setBudget(); break;
-
-
-                    default: System.out.println("Invalid option!");
-                }
+                userMenu();
             } else {
                 expenseMenu();
             }
+        }
+    }
+
+    // ================= USER MENU =================
+    static void userMenu() {
+        System.out.println("\n=== USER MENU ===");
+        System.out.println("1. Register");
+        System.out.println("2. Login");
+        System.out.println("3. Forgot Password");
+        System.out.println("4. Exit");
+
+        int ch = readInt("Choose option: ");
+
+        switch (ch) {
+            case 1: register(); break;
+            case 2: login(); break;
+            case 3: forgotPassword(); break;
+            case 4: System.out.println("Bye 👋"); System.exit(0);
+            default: System.out.println("Invalid option!");
+        }
+    }
+
+    // ================= EXPENSE MENU =================
+    static void expenseMenu() {
+        System.out.println("\n=== EXPENSE MENU ===");
+        System.out.println("Logged in as: " + loggedInUser);
+        System.out.println("1. Add Expense");
+        System.out.println("2. View Expenses");
+        System.out.println("3. Total Expense");
+        System.out.println("4. Change Password");
+        System.out.println("5. Set Monthly Budget");
+        System.out.println("6. Logout");
+
+        int ch = readInt("Choose option: ");
+
+        switch (ch) {
+            case 1: addExpense(); break;
+            case 2: viewExpenses(); break;
+            case 3: viewTotal(); break;
+            case 4: changePassword(); break;
+            case 5: setBudget(); break;
+            case 6: loggedInUser = null; break;
+            default: System.out.println("Invalid option!");
         }
     }
 
@@ -76,8 +98,8 @@ public class ExpenseTracker {
         try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] data = line.split("\\|");
-                if (data[0].equals(u) && data[1].equals(hashed)) {
+                String[] d = line.split("\\|");
+                if (d[0].equals(u) && d[1].equals(hashed)) {
                     loggedInUser = u;
                     System.out.println("✅ Login successful");
                     return;
@@ -88,24 +110,80 @@ public class ExpenseTracker {
         System.out.println("❌ Invalid credentials");
     }
 
-    // ================= EXPENSE MENU =================
-    static void expenseMenu() {
-        System.out.println("\n=== EXPENSE MENU ===");
-        System.out.println("User: " + loggedInUser);
-        System.out.println("1. Add Expense");
-        System.out.println("2. View Expenses");
-        System.out.println("3. Total Expense");
-        System.out.println("4. Logout");
+    // ================= FORGOT PASSWORD =================
+    static void forgotPassword() {
+        System.out.print("Enter username: ");
+        String u = sc.nextLine();
 
-        int ch = readInt("Choose option: ");
+        List<String> users = new ArrayList<>();
+        boolean found = false;
 
-        switch (ch) {
-            case 1: addExpense(); break;
-            case 2: viewExpenses(); break;
-            case 3: viewTotal(); break;
-            case 4: loggedInUser = null; break;
-            default: System.out.println("Invalid option!");
+        try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] d = line.split("\\|");
+                if (d[0].equals(u)) {
+                    users.add(u + "|" + hashPassword("1234"));
+                    found = true;
+                } else {
+                    users.add(line);
+                }
+            }
+        } catch (Exception e) {}
+
+        if (!found) {
+            System.out.println("❌ User not found");
+            return;
         }
+
+        try (FileWriter fw = new FileWriter(USER_FILE)) {
+            for (String s : users) fw.write(s + "\n");
+            System.out.println("✅ Password reset to default: 1234");
+        } catch (Exception e) {}
+    }
+
+    // ================= CHANGE PASSWORD =================
+    static void changePassword() {
+        String oldPwd = readPassword("Enter old password: ");
+        String oldHash = hashPassword(oldPwd);
+
+        List<String> users = new ArrayList<>();
+        boolean updated = false;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] d = line.split("\\|");
+                if (d[0].equals(loggedInUser) && d[1].equals(oldHash)) {
+                    String newPwd = readPassword("Enter new password: ");
+                    users.add(d[0] + "|" + hashPassword(newPwd));
+                    updated = true;
+                } else {
+                    users.add(line);
+                }
+            }
+        } catch (Exception e) {}
+
+        if (!updated) {
+            System.out.println("❌ Old password incorrect");
+            return;
+        }
+
+        try (FileWriter fw = new FileWriter(USER_FILE)) {
+            for (String s : users) fw.write(s + "\n");
+            System.out.println("✅ Password changed successfully");
+        } catch (Exception e) {}
+    }
+
+    // ================= SET BUDGET =================
+    static void setBudget() {
+        System.out.print("Enter monthly budget: ");
+        double budget = Double.parseDouble(sc.nextLine());
+
+        try (FileWriter fw = new FileWriter(BUDGET_FILE)) {
+            fw.write(String.valueOf(budget));
+            System.out.println("✅ Budget saved");
+        } catch (Exception e) {}
     }
 
     // ================= ADD EXPENSE =================
@@ -124,34 +202,16 @@ public class ExpenseTracker {
             fw.write(loggedInUser + "|" + amt + "|" + cat + "|" + desc + "\n");
             System.out.println("✅ Expense added");
 
+            checkBudgetAlert();
+
         } catch (Exception e) {
             System.out.println("❌ Error adding expense");
         }
-        checkBudgetAlert();
-
     }
 
-    // ================= VIEW EXPENSES =================
-    static void viewExpenses() {
-        boolean found = false;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] d = line.split("\\|");
-                if (d[0].equals(loggedInUser)) {
-                    System.out.println("₹" + d[1] + " | " + d[2] + " | " + d[3]);
-                    found = true;
-                }
-            }
-        } catch (Exception e) {}
-
-        if (!found) System.out.println("No expenses found");
-    }
-
-    // ================= TOTAL =================
-    static void viewTotal() {
-        double total = 0;
+    // ================= ALERT =================
+    static void checkBudgetAlert() {
+        double total = 0, budget;
 
         try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
             String line;
@@ -163,19 +223,60 @@ public class ExpenseTracker {
             }
         } catch (Exception e) {}
 
+        try (BufferedReader br = new BufferedReader(new FileReader(BUDGET_FILE))) {
+            budget = Double.parseDouble(br.readLine());
+        } catch (Exception e) {
+            return;
+        }
+
+        if (total >= budget * 0.9) {
+            System.out.println("⚠️ ALERT: You have used 90% of your budget!");
+        }
+    }
+
+    // ================= VIEW =================
+    static void viewExpenses() {
+        boolean found = false;
+        try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] d = line.split("\\|");
+                if (d[0].equals(loggedInUser)) {
+                    System.out.println("₹" + d[1] + " | " + d[2] + " | " + d[3]);
+                    found = true;
+                }
+            }
+        } catch (Exception e) {}
+        if (!found) System.out.println("No expenses found");
+    }
+
+    static void viewTotal() {
+        double total = 0;
+        try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] d = line.split("\\|");
+                if (d[0].equals(loggedInUser)) {
+                    total += Double.parseDouble(d[1]);
+                }
+            }
+        } catch (Exception e) {}
         System.out.println("Total Expense: ₹" + total);
     }
 
     // ================= HELPERS =================
     static boolean userExists(String username) {
-        try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.startsWith(username + "|")) return true;
+    try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {   // ✅ FIXED
+            if (line.startsWith(username + "|")) {
+                return true;
             }
-        } catch (Exception e) {}
-        return false;
-    }
+        }
+    } catch (Exception e) {}
+    return false;
+}
+
 
     static int readInt(String msg) {
         while (true) {
@@ -188,134 +289,25 @@ public class ExpenseTracker {
         }
     }
 
-    // ===== PASSWORD HIDE =====
     static String readPassword(String msg) {
-        Console console = System.console();
-        if (console != null) {
-            char[] pwd = console.readPassword(msg);
-            return new String(pwd);
+        Console c = System.console();
+        if (c != null) {
+            return new String(c.readPassword(msg));
         } else {
-            // VS Code fallback
             System.out.print(msg);
             return sc.nextLine();
         }
     }
 
-    // ===== PASSWORD HASH =====
     static String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] bytes = md.digest(password.getBytes());
-
+            byte[] b = md.digest(password.getBytes());
             StringBuilder sb = new StringBuilder();
-            for (byte b : bytes) {
-                sb.append(String.format("%02x", b));
-            }
+            for (byte x : b) sb.append(String.format("%02x", x));
             return sb.toString();
-
         } catch (Exception e) {
             return password;
         }
     }
-
-    static void forgotPassword() {
-    System.out.print("Enter username: ");
-    String u = sc.nextLine();
-
-    List<String> users = new ArrayList<>();
-    boolean found = false;
-
-    try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
-        String line;
-        while ((line = br.readLine()) != null) {
-            String[] d = line.split("\\|");
-
-            if (d[0].equals(u)) {
-                String tempPwd = "1234";
-                String hash = hashPassword(tempPwd);
-                users.add(u + "|" + hash);
-                found = true;
-            } else {
-                users.add(line);
-            }
-        }
-    } catch (Exception e) {}
-
-    if (!found) {
-        System.out.println("❌ User not found");
-        return;
-    }
-
-    try (FileWriter fw = new FileWriter(USER_FILE)) {
-        for (String s : users) fw.write(s + "\n");
-        System.out.println("✅ Password reset to default: 1234");
-    } catch (Exception e) {}
-}
-    static void changePassword() {
-    String oldPwd = readPassword("Enter old password: ");
-    String oldHash = hashPassword(oldPwd);
-
-    List<String> users = new ArrayList<>();
-    boolean updated = false;
-
-    try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
-        String line;
-        while ((line = br.readLine()) != null) {
-            String[] d = line.split("\\|");
-
-            if (d[0].equals(loggedInUser) && d[1].equals(oldHash)) {
-                String newPwd = readPassword("Enter new password: ");
-                String newHash = hashPassword(newPwd);
-                users.add(d[0] + "|" + newHash);
-                updated = true;
-            } else {
-                users.add(line);
-            }
-        }
-    } catch (Exception e) {}
-
-    if (!updated) {
-        System.out.println("❌ Old password incorrect");
-        return;
-    }
-
-    try (FileWriter fw = new FileWriter(USER_FILE)) {
-        for (String u : users) fw.write(u + "\n");
-        System.out.println("✅ Password changed successfully");
-    } catch (Exception e) {}
-}
-        static void setBudget() {
-    System.out.print("Enter monthly budget: ");
-    double budget = Double.parseDouble(sc.nextLine());
-
-    try (FileWriter fw = new FileWriter(BUDGET_FILE)) {
-        fw.write(String.valueOf(budget));
-        System.out.println("✅ Budget saved");
-    } catch (Exception e) {}
-}
-    static void checkBudgetAlert() {
-    double total = 0, budget;
-
-    try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
-        String line;
-        while ((line = br.readLine()) != null) {
-            String[] d = line.split("\\|");
-            if (d[0].equals(loggedInUser)) {
-                total += Double.parseDouble(d[1]);
-            }
-        }
-    } catch (Exception e) {}
-
-    try (BufferedReader br = new BufferedReader(new FileReader(BUDGET_FILE))) {
-        budget = Double.parseDouble(br.readLine());
-    } catch (Exception e) {
-        return;
-    }
-
-    if (total >= budget * 0.9) {
-        System.out.println("⚠️ ALERT: You have used 90% of your budget!");
-    }
-}
-
-
 }
