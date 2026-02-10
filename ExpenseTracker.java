@@ -9,6 +9,8 @@ public class ExpenseTracker {
 
     static final String USER_FILE = "users.txt";
     static final String EXPENSE_FILE = "expenses.txt";
+    static final String BUDGET_FILE = "budget.txt";
+
 
     // ================= MAIN =================
     public static void main(String[] args) {
