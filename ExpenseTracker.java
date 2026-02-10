@@ -127,6 +127,8 @@ public class ExpenseTracker {
         } catch (Exception e) {
             System.out.println("❌ Error adding expense");
         }
+        checkBudgetAlert();
+
     }
 
     // ================= VIEW EXPENSES =================
@@ -291,5 +293,29 @@ public class ExpenseTracker {
         System.out.println("✅ Budget saved");
     } catch (Exception e) {}
 }
+    static void checkBudgetAlert() {
+    double total = 0, budget;
+
+    try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] d = line.split("\\|");
+            if (d[0].equals(loggedInUser)) {
+                total += Double.parseDouble(d[1]);
+            }
+        }
+    } catch (Exception e) {}
+
+    try (BufferedReader br = new BufferedReader(new FileReader(BUDGET_FILE))) {
+        budget = Double.parseDouble(br.readLine());
+    } catch (Exception e) {
+        return;
+    }
+
+    if (total >= budget * 0.9) {
+        System.out.println("⚠️ ALERT: You have used 90% of your budget!");
+    }
+}
+
 
 }
