@@ -23,8 +23,7 @@ public class ExpenseTracker {
                 System.out.println("3. Forgot Password");
                 System.out.println("5. Change Password");
                 System.out.println("4. Exit");
-
-                System.out.println("3. Exit");
+                System.out.println("6. Set Monthly Budget");
 
                 int ch = readInt("Choose option: ");
 
@@ -34,6 +33,7 @@ public class ExpenseTracker {
                     case 3: forgotPassword(); break;
                     case 4: return;
                     case 5: changePassword(); break;
+                    case 6: setBudget(); break;
 
 
                     default: System.out.println("Invalid option!");
@@ -280,6 +280,15 @@ public class ExpenseTracker {
     try (FileWriter fw = new FileWriter(USER_FILE)) {
         for (String u : users) fw.write(u + "\n");
         System.out.println("✅ Password changed successfully");
+    } catch (Exception e) {}
+}
+        static void setBudget() {
+    System.out.print("Enter monthly budget: ");
+    double budget = Double.parseDouble(sc.nextLine());
+
+    try (FileWriter fw = new FileWriter(BUDGET_FILE)) {
+        fw.write(String.valueOf(budget));
+        System.out.println("✅ Budget saved");
     } catch (Exception e) {}
 }
 
