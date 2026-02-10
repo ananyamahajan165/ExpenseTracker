@@ -1,7 +1,6 @@
 import java.util.*;
 import java.io.*;
 import java.security.*;
-import java.io.Console;
 
 public class ExpenseTracker {
 
@@ -19,6 +18,9 @@ public class ExpenseTracker {
                 System.out.println("\n=== USER MENU ===");
                 System.out.println("1. Register");
                 System.out.println("2. Login");
+                System.out.println("3. Forgot Password");
+                System.out.println("4. Exit");
+
                 System.out.println("3. Exit");
 
                 int ch = readInt("Choose option: ");
@@ -26,7 +28,9 @@ public class ExpenseTracker {
                 switch (ch) {
                     case 1: register(); break;
                     case 2: login(); break;
-                    case 3: System.out.println("Bye 👋"); return;
+                    case 3: forgotPassword(); break;
+                    case 4: return;
+
                     default: System.out.println("Invalid option!");
                 }
             } else {
@@ -206,4 +210,39 @@ public class ExpenseTracker {
             return password;
         }
     }
+
+    static void forgotPassword() {
+    System.out.print("Enter username: ");
+    String u = sc.nextLine();
+
+    List<String> users = new ArrayList<>();
+    boolean found = false;
+
+    try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] d = line.split("\\|");
+
+            if (d[0].equals(u)) {
+                String tempPwd = "1234";
+                String hash = hashPassword(tempPwd);
+                users.add(u + "|" + hash);
+                found = true;
+            } else {
+                users.add(line);
+            }
+        }
+    } catch (Exception e) {}
+
+    if (!found) {
+        System.out.println("❌ User not found");
+        return;
+    }
+
+    try (FileWriter fw = new FileWriter(USER_FILE)) {
+        for (String s : users) fw.write(s + "\n");
+        System.out.println("✅ Password reset to default: 1234");
+    } catch (Exception e) {}
+}
+
 }
