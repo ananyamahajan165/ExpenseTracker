@@ -13,7 +13,6 @@ public class ExpenseTracker {
 
     // ================= MAIN =================
     public static void main(String[] args) {
-
         while (true) {
             if (loggedInUser == null) {
                 userMenu();
@@ -46,30 +45,31 @@ public class ExpenseTracker {
     static void expenseMenu() {
         System.out.println("\n=== EXPENSE MENU ===");
         System.out.println("Logged in as: " + loggedInUser);
-        System.out.println("1. Add Expense");
-        System.out.println("2. View Expenses");
-        System.out.println("3. Total Expense");
-        System.out.println("4. Change Password");
-        System.out.println("5. Set Monthly Budget");
+        System.out.println("1. Set Monthly Budget");
+        System.out.println("2. Add Expense");
+        System.out.println("3. View Expenses");
+        System.out.println("4. Total Expense");
+        System.out.println("5. Change Password");
         System.out.println("6. Logout");
 
         int ch = readInt("Choose option: ");
 
-        switch (ch) {
-            case 1: addExpense(); break;
-            case 2: viewExpenses(); break;
-            case 3: viewTotal(); break;
-            case 4: changePassword(); break;
-            case 5: setBudget(); break;
-            case 6: loggedInUser = null; break;
-            default: System.out.println("Invalid option!");
+            switch (ch) {
+                case 1: setBudget(); break;
+                case 2: addExpense(); break;
+                case 3: viewExpenses(); break;
+                case 4: viewTotal(); break;
+                case 5: changePassword(); break;
+                case 6: loggedInUser = null; break;
+                default: System.out.println("Invalid option!");
+            }
         }
-    }
+    
 
     // ================= REGISTER =================
     static void register() {
         System.out.print("Choose username: ");
-        String u = sc.nextLine();
+        String u = sc.nextLine().toLowerCase();
 
         if (userExists(u)) {
             System.out.println("❌ Username already exists");
@@ -90,7 +90,7 @@ public class ExpenseTracker {
     // ================= LOGIN =================
     static void login() {
         System.out.print("Username: ");
-        String u = sc.nextLine();
+        String u = sc.nextLine().toLowerCase();
 
         String p = readPassword("Password: ");
         String hashed = hashPassword(p);
@@ -113,7 +113,7 @@ public class ExpenseTracker {
     // ================= FORGOT PASSWORD =================
     static void forgotPassword() {
         System.out.print("Enter username: ");
-        String u = sc.nextLine();
+        String u = sc.nextLine().toLowerCase();
 
         List<String> users = new ArrayList<>();
         boolean found = false;
@@ -266,17 +266,14 @@ public class ExpenseTracker {
 
     // ================= HELPERS =================
     static boolean userExists(String username) {
-    try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
-        String line;
-        while ((line = br.readLine()) != null) {   // ✅ FIXED
-            if (line.startsWith(username + "|")) {
-                return true;
+        try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith(username + "|")) return true;
             }
-        }
-    } catch (Exception e) {}
-    return false;
-}
-
+        } catch (Exception e) {}
+        return false;
+    }
 
     static int readInt(String msg) {
         while (true) {
