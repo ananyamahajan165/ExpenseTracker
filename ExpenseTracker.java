@@ -271,18 +271,29 @@ public class ExpenseTracker {
     }
 
     static void viewTotal() {
-        double total = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] d = line.split("\\|");
-                if (d[0].equals(loggedInUser)) {
-                    total += Double.parseDouble(d[1]);
-                }
+    System.out.println("\n--- Calculating Total Expense ---");
+
+    double total = 0;
+    boolean found = false;
+
+    try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] d = line.split("\\|");
+            if (d[0].equals(loggedInUser)) {
+                total += Double.parseDouble(d[1]);
+                found = true;
             }
-        } catch (Exception e) {}
-        System.out.println("Total Expense: ₹" + total);
+        }
+    } catch (Exception e) {}
+
+    if (!found) {
+        System.out.println("No expenses found for user.");
     }
+
+    System.out.println("Total Expense: ₹" + total);
+    System.out.println("-------------------------------");
+}
 
     // ================= HELPERS =================
     static boolean userExists(String username) {
