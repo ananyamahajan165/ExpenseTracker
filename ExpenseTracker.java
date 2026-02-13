@@ -55,13 +55,33 @@ public class ExpenseTracker {
         int ch = readInt("Choose option: ");
 
             switch (ch) {
-                case 1: setBudget(); break;
-                case 2: addExpense(); break;
-                case 3: viewExpenses(); break;
-                case 4: viewTotal(); break;
-                case 5: changePassword(); break;
-                case 6: loggedInUser = null; break;
-                default: System.out.println("Invalid option!");
+                 case 1:
+                setBudget();
+                break;
+
+                case 2:
+                addExpense();
+                break;
+
+                case 3:
+                viewExpenses();
+                break;
+
+                case 4:
+                viewTotal();
+                break;
+
+                case 5:
+                changePassword();
+                break;
+
+                case 6:
+                loggedInUser = null;
+                System.out.println("Logged out successfully");
+                break;
+
+                default:
+                System.out.println("Invalid option!");
             }
         }
     
