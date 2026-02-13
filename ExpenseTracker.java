@@ -297,10 +297,13 @@ public class ExpenseTracker {
                 found = true;
             }
         }
-    } catch (Exception e) {}
+    } catch (Exception e) {
+        System.out.println("❌ Error reading expenses file");
+        return;
+    }
 
     if (!found) {
-        System.out.println("No expenses found for user.");
+        System.out.println("No expenses found.");
     }
 
     System.out.println("Total Expense: ₹" + total);
