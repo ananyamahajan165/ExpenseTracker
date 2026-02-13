@@ -1,1 +1,2 @@
 ananya|10.0|food|patty
+ananya|100.0|food|patty

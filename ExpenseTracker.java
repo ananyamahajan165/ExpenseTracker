@@ -43,6 +43,8 @@ public class ExpenseTracker {
 
     // ================= EXPENSE MENU =================
     static void expenseMenu() {
+        ensureFileExists(EXPENSE_FILE);
+        ensureFileExists(BUDGET_FILE);
         System.out.println("\n=== EXPENSE MENU ===");
         System.out.println("Logged in as: " + loggedInUser);
         System.out.println("1. Set Monthly Budget");
@@ -338,4 +340,15 @@ public class ExpenseTracker {
             return password;
         }
     }
+
+    static void ensureFileExists(String fileName) {
+    try {
+        File f = new File(fileName);
+        if (!f.exists()) {
+            f.createNewFile();
+        }
+    } catch (Exception e) {
+        System.out.println("❌ Error creating file: " + fileName);
+    }
+}
 }
