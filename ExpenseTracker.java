@@ -258,19 +258,29 @@ public class ExpenseTracker {
 
     // ================= VIEW =================
     static void viewExpenses() {
-        boolean found = false;
-        try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] d = line.split("\\|");
-                if (d[0].equals(loggedInUser)) {
-                    System.out.println("₹" + d[1] + " | " + d[2] + " | " + d[3]);
-                    found = true;
-                }
+    System.out.println("\n--- Your Expenses ---");
+    boolean found = false;
+
+    try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] d = line.split("\\|");
+            if (d[0].equals(loggedInUser)) {
+                System.out.println("₹" + d[1] + " | " + d[2] + " | " + d[3]);
+                found = true;
             }
-        } catch (Exception e) {}
-        if (!found) System.out.println("No expenses found");
+        }
+    } catch (Exception e) {
+        System.out.println("❌ Error reading expenses file");
+        return;
     }
+
+    if (!found) {
+        System.out.println("No expenses found.");
+    }
+
+    System.out.println("----------------------");
+}
 
     static void viewTotal() {
     System.out.println("\n--- Calculating Total Expense ---");
