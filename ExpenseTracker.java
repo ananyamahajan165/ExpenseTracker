@@ -33,12 +33,29 @@ public class ExpenseTracker {
         int ch = readInt("Choose option: ");
 
         switch (ch) {
-            case 1: register(); break;
-            case 2: login(); break;
-            case 3: forgotPassword(); break;
-            case 4: System.out.println("Bye 👋"); System.exit(0);
-            default: System.out.println("Invalid option!");
-        }
+    case 1:
+        register();
+        pause();
+        break;
+
+    case 2:
+        login();
+        pause();
+        break;
+
+    case 3:
+        forgotPassword();
+        pause();
+        break;
+
+    case 4:
+        System.out.println("Bye 👋");
+        System.exit(0);
+
+    default:
+        System.out.println("Invalid option!");
+        pause();
+}
     }
 
     // ================= EXPENSE MENU =================
@@ -391,5 +408,9 @@ public class ExpenseTracker {
     } catch (Exception e) {
         System.out.println("❌ Error creating file: " + fileName);
     }
+}
+    static void pause() {
+        System.out.println("\nPress ENTER to continue...");
+        sc.nextLine();
 }
 }
