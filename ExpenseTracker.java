@@ -283,31 +283,59 @@ public class ExpenseTracker {
 }
 
     static void viewTotal() {
-    System.out.println("\n--- Calculating Total Expense ---");
+    ensureFileExists(EXPENSE_FILE);
+    ensureFileExists(BUDGET_FILE);
 
-    double total = 0;
-    boolean found = false;
+    double totalExpense = 0;
+    double budget = 0;
+    boolean expenseFound = false;
 
+    // 1️⃣ Read total expenses of logged-in user
     try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
         String line;
         while ((line = br.readLine()) != null) {
             String[] d = line.split("\\|");
-            if (d[0].equals(loggedInUser)) {
-                total += Double.parseDouble(d[1]);
-                found = true;
+            if (d.length >= 2 && d[0].equals(loggedInUser)) {
+                totalExpense += Double.parseDouble(d[1]);
+                expenseFound = true;
             }
         }
     } catch (Exception e) {
-        System.out.println("❌ Error reading expenses file");
+        System.out.println("❌ Error reading expenses");
         return;
     }
 
-    if (!found) {
-        System.out.println("No expenses found.");
+    // 2️⃣ Read budget
+    try (BufferedReader br = new BufferedReader(new FileReader(BUDGET_FILE))) {
+        String line = br.readLine();
+        if (line != null) {
+            budget = Double.parseDouble(line);
+        }
+    } catch (Exception e) {
+        System.out.println("❌ Monthly budget not set");
+        return;
     }
 
-    System.out.println("Total Expense: ₹" + total);
-    System.out.println("-------------------------------");
+    // 3️⃣ Calculate remaining
+    double remaining = budget - totalExpense;
+
+    // 4️⃣ Display result
+    System.out.println("\n--- Monthly Expense Summary ---");
+    System.out.println("Monthly Budget : ₹" + budget);
+    System.out.println("Total Expense  : ₹" + totalExpense);
+    System.out.println("Remaining      : ₹" + remaining);
+
+    if (!expenseFound) {
+        System.out.println("(No expenses recorded yet)");
+    }
+
+    if (remaining <= 0) {
+        System.out.println("⚠️ Budget exceeded!");
+    } else if (remaining <= budget * 0.1) {
+        System.out.println("⚠️ Warning: Only 10% budget left!");
+    }
+
+    System.out.println("--------------------------------");
 }
 
     // ================= HELPERS =================
