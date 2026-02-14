@@ -79,8 +79,9 @@ public class ExpenseTracker {
         System.out.println("3. View Expenses");
         System.out.println("4. Total Expense");
         System.out.println("5. View Monthly Expenses");
-        System.out.println("6. Change Password");
-        System.out.println("7. Logout");
+        System.out.println("6. Category-wise Monthly Report");
+        System.out.println("7. Change Password");
+        System.out.println("8. Logout");
 
         int ch = readInt("Choose option: ");
 
@@ -106,10 +107,14 @@ public class ExpenseTracker {
                     break;
 
             case 6:
-                changePassword();
+                categoryWiseMonthlyReport();
                 break;
 
             case 7:
+                changePassword();
+                break;
+
+            case 8:
                 loggedInUser = null;
                 System.out.println("Logged out successfully");
                 break;
@@ -350,6 +355,58 @@ while (cat == null) {
     }
 
     System.out.println("----------------------");
+}
+
+        static void categoryWiseMonthlyReport() {
+    System.out.print("Enter month (YYYY-MM): ");
+    String monthInput = sc.nextLine();
+
+    // Initialize totals for all categories
+    Map<Category, Double> categoryTotals = new EnumMap<>(Category.class);
+    for (Category c : Category.values()) {
+        categoryTotals.put(c, 0.0);
+    }
+
+    boolean found = false;
+    double grandTotal = 0;
+
+    try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] d = line.split("\\|");
+
+            // username | amount | category | date | timestamp | description
+            if (d.length >= 6 && d[0].equals(loggedInUser)) {
+                LocalDate expenseDate = LocalDate.parse(d[3]);
+                String expenseMonth = expenseDate.getYear() + "-" +
+                        String.format("%02d", expenseDate.getMonthValue());
+
+                if (expenseMonth.equals(monthInput)) {
+                    Category cat = Category.valueOf(d[2]);
+                    double amt = Double.parseDouble(d[1]);
+
+                    categoryTotals.put(cat, categoryTotals.get(cat) + amt);
+                    grandTotal += amt;
+                    found = true;
+                }
+            }
+        }
+    } catch (Exception e) {
+        System.out.println("❌ Error generating report");
+        return;
+    }
+
+    if (!found) {
+        System.out.println("No expenses found for " + monthInput);
+        return;
+    }
+
+    System.out.println("\n--- Category-wise Report (" + monthInput + ") ---");
+    for (Category c : Category.values()) {
+        System.out.println(c + " : ₹" + categoryTotals.get(c));
+    }
+    System.out.println("--------------------------------");
+    System.out.println("TOTAL : ₹" + grandTotal);
 }
 
     static void viewTotal() {
