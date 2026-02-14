@@ -70,8 +70,9 @@ public class ExpenseTracker {
         System.out.println("2. Add Expense");
         System.out.println("3. View Expenses");
         System.out.println("4. Total Expense");
-        System.out.println("5. Change Password");
-        System.out.println("6. Logout");
+        System.out.println("5. View Monthly Expenses");
+        System.out.println("6. Change Password");
+        System.out.println("7. Logout");
 
         int ch = readInt("Choose option: ");
 
@@ -93,14 +94,17 @@ public class ExpenseTracker {
                 break;
 
             case 5:
+                viewExpenses();
+                    break;
+
+            case 6:
                 changePassword();
                 break;
 
-            case 6:
+            case 7:
                 loggedInUser = null;
                 System.out.println("Logged out successfully");
                 break;
-
             default:
                 System.out.println("Invalid option!");
         }
@@ -295,29 +299,36 @@ public class ExpenseTracker {
 
     // ================= VIEW =================
     static void viewExpenses() {
-        System.out.println("\n--- Your Expenses ---");
-        boolean found = false;
+    System.out.println("\n--- All Expenses ---");
+    boolean found = false;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] d = line.split("\\|");
-                if (d[0].equals(loggedInUser)) {
-                    System.out.println("₹" + d[1] + " | " + d[2] + " | " + d[3]);
-                    found = true;
-                }
+    try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] d = line.split("\\|");
+
+            if (d.length >= 6 && d[0].equals(loggedInUser)) {
+                System.out.println(
+                        "₹" + d[1] +
+                        " | " + d[2] +
+                        " | Date: " + d[3] +
+                        " | Time: " + d[4] +
+                        " | " + d[5]
+                );
+                found = true;
             }
-        } catch (Exception e) {
-            System.out.println("❌ Error reading expenses file");
-            return;
         }
-
-        if (!found) {
-            System.out.println("No expenses found.");
-        }
-
-        System.out.println("----------------------");
+    } catch (Exception e) {
+        System.out.println("❌ Error reading expenses");
+        return;
     }
+
+    if (!found) {
+        System.out.println("No expenses found.");
+    }
+
+    System.out.println("----------------------");
+}
 
     static void viewTotal() {
         ensureFileExists(EXPENSE_FILE);
@@ -332,7 +343,7 @@ public class ExpenseTracker {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] d = line.split("\\|");
-                if (d.length >= 2 && d[0].equals(loggedInUser)) {
+                if (d.length >= 6 && d[0].equals(loggedInUser)) {
                     totalExpense += Double.parseDouble(d[1]);
                     expenseFound = true;
                 }
