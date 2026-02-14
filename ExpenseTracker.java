@@ -1,6 +1,8 @@
 import java.util.*;
 import java.io.*;
 import java.security.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class ExpenseTracker {
 
@@ -234,26 +236,36 @@ public class ExpenseTracker {
 
     // ================= ADD EXPENSE =================
     static void addExpense() {
-        try (FileWriter fw = new FileWriter(EXPENSE_FILE, true)) {
+    try (FileWriter fw = new FileWriter(EXPENSE_FILE, true)) {
 
-            System.out.print("Amount: ");
-            double amt = Double.parseDouble(sc.nextLine());
+        System.out.print("Amount: ");
+        double amt = Double.parseDouble(sc.nextLine());
 
-            System.out.print("Category: ");
-            String cat = sc.nextLine();
+        System.out.print("Category: ");
+        String cat = sc.nextLine();
 
-            System.out.print("Description: ");
-            String desc = sc.nextLine();
+        System.out.print("Description: ");
+        String desc = sc.nextLine();
 
-            fw.write(loggedInUser + "|" + amt + "|" + cat + "|" + desc + "\n");
-            System.out.println("✅ Expense added");
+        LocalDate date = LocalDate.now();              // 📅 date
+        LocalDateTime timestamp = LocalDateTime.now(); // ⏰ time
 
-            checkBudgetAlert();
+        fw.write(
+            loggedInUser + "|" +
+            amt + "|" +
+            cat + "|" +
+            date + "|" +
+            timestamp + "|" +
+            desc + "\n"
+        );
 
-        } catch (Exception e) {
-            System.out.println("❌ Error adding expense");
-        }
+        System.out.println("✅ Expense added with date & time");
+        checkBudgetAlert();
+
+    } catch (Exception e) {
+        System.out.println("❌ Error adding expense");
     }
+}
 
     // ================= ALERT =================
     static void checkBudgetAlert() {
