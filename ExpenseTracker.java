@@ -12,6 +12,14 @@ public class ExpenseTracker {
     static final String USER_FILE = "users.txt";
     static final String EXPENSE_FILE = "expenses.txt";
     static final String BUDGET_FILE = "budget.txt";
+    enum Category {
+    FOOD,
+    TRAVEL,
+    RENT,
+    SHOPPING,
+    UTILITIES,
+    OTHER
+}
 
     // ================= MAIN =================
     public static void main(String[] args) {
@@ -245,9 +253,24 @@ public class ExpenseTracker {
         System.out.print("Amount: ");
         double amt = Double.parseDouble(sc.nextLine());
 
-        System.out.print("Category: ");
-        String cat = sc.nextLine();
+       Category cat = null;
 
+while (cat == null) {
+    System.out.println("Choose Category:");
+    for (Category c : Category.values()) {
+        System.out.print(c + " ");
+    }
+    System.out.println();
+
+    System.out.print("Enter category: ");
+    String input = sc.nextLine().toUpperCase();
+
+    try {
+        cat = Category.valueOf(input);
+    } catch (IllegalArgumentException e) {
+        System.out.println("❌ Invalid category. Try again.");
+    }
+}
         System.out.print("Description: ");
         String desc = sc.nextLine();
 
@@ -256,8 +279,7 @@ public class ExpenseTracker {
 
         fw.write(
             loggedInUser + "|" +
-            amt + "|" +
-            cat + "|" +
+            amt + "|" + cat.name() + "|" +
             date + "|" +
             timestamp + "|" +
             desc + "\n"
