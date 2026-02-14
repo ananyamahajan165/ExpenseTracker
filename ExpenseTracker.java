@@ -21,6 +21,20 @@ public class ExpenseTracker {
     OTHER
 }
 
+    static class Expense {
+    double amount;
+    String category;
+    LocalDate date;
+    String description;
+
+    Expense(double amount, String category, LocalDate date, String description) {
+        this.amount = amount;
+        this.category = category;
+        this.date = date;
+        this.description = description;
+    }
+}
+
     // ================= MAIN =================
     public static void main(String[] args) {
         while (true) {
@@ -80,8 +94,10 @@ public class ExpenseTracker {
         System.out.println("4. Total Expense");
         System.out.println("5. View Monthly Expenses");
         System.out.println("6. Category-wise Monthly Report");
-        System.out.println("7. Change Password");
-        System.out.println("8. Logout");
+        System.out.println("7. Search Expenses");
+        System.out.println("8. Sort Expenses");
+        System.out.println("9. Change Password");
+        System.out.println("10. Logout");
 
         int ch = readInt("Choose option: ");
 
@@ -111,10 +127,18 @@ public class ExpenseTracker {
                 break;
 
             case 7:
-                changePassword();
+                searchExpenses();
                 break;
 
             case 8:
+                sortExpensesMenu();
+                break;
+
+            case 9:
+                changePassword();
+                break;
+
+            case 10:
                 loggedInUser = null;
                 System.out.println("Logged out successfully");
                 break;
@@ -527,4 +551,102 @@ while (cat == null) {
         System.out.println("\nPress ENTER to continue...");
         sc.nextLine();
     }
+
+    static void searchExpenses() {
+    System.out.print("Enter keyword (category/description): ");
+    String keyword = sc.nextLine().toLowerCase();
+
+    boolean found = false;
+
+    try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] d = line.split("\\|");
+
+            // username | amount | category | date | timestamp | description
+            if (d.length >= 6 && d[0].equals(loggedInUser)) {
+                String category = d[2].toLowerCase();
+                String desc = d[5].toLowerCase();
+
+                if (category.contains(keyword) || desc.contains(keyword)) {
+                    System.out.println(
+                        "₹" + d[1] +
+                        " | " + d[2] +
+                        " | " + d[3] +
+                        " | " + d[5]
+                    );
+                    found = true;
+                }
+            }
+        }
+    } catch (Exception e) {
+        System.out.println("❌ Error searching expenses");
+        return;
+    }
+
+    if (!found) {
+        System.out.println("No matching expenses found.");
+    }
+}
+
+        static void sortExpensesMenu() {
+    System.out.println("Sort By:");
+    System.out.println("1. Amount (High → Low)");
+    System.out.println("2. Date (Newest → Oldest)");
+
+    int choice = readInt("Choose option: ");
+
+    switch (choice) {
+        case 1:
+            sortByAmount();
+            break;
+        case 2:
+            sortByDate();
+            break;
+        default:
+            System.out.println("Invalid option");
+    }
+}
+
+static List<Expense> loadUserExpenses() {
+    List<Expense> list = new ArrayList<>();
+
+    try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] d = line.split("\\|");
+            if (d.length >= 6 && d[0].equals(loggedInUser)) {
+                list.add(new Expense(
+                        Double.parseDouble(d[1]),
+                        d[2],
+                        LocalDate.parse(d[3]),
+                        d[5]
+                ));
+            }
+        }
+    } catch (Exception e) {
+        System.out.println("❌ Error loading expenses");
+    }
+    return list;
+}
+
+static void sortByAmount() {
+    List<Expense> list = loadUserExpenses();
+
+    list.sort((a, b) -> Double.compare(b.amount, a.amount));
+
+    for (Expense e : list) {
+        System.out.println("₹" + e.amount + " | " + e.category + " | " + e.date + " | " + e.description);
+    }
+}
+
+static void sortByDate() {
+    List<Expense> list = loadUserExpenses();
+
+    list.sort((a, b) -> b.date.compareTo(a.date));
+
+    for (Expense e : list) {
+        System.out.println("₹" + e.amount + " | " + e.category + " | " + e.date + " | " + e.description);
+    }
+}
 }
