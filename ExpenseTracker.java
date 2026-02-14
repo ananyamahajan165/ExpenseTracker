@@ -4,6 +4,17 @@ import java.security.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+class InvalidExpenseException extends Exception {
+    public InvalidExpenseException(String message) {
+        super(message);
+    }
+}
+
+class InvalidInputException extends Exception {
+    public InvalidInputException(String message) {
+        super(message);
+    }
+}
 public class ExpenseTracker {
 
     static Scanner sc = new Scanner(System.in);
@@ -227,6 +238,8 @@ public class ExpenseTracker {
         }
     }
 
+
+
     // ================= CHANGE PASSWORD =================
     static void changePassword() {
         String oldPwd = readPassword("Enter old password: ");
@@ -263,17 +276,29 @@ public class ExpenseTracker {
         }
     }
 
+
+
     // ================= SET BUDGET =================
     static void setBudget() {
+    try {
         System.out.print("Enter monthly budget: ");
         double budget = Double.parseDouble(sc.nextLine());
+
+        if (budget <= 0) {
+            throw new InvalidInputException("Budget must be greater than 0");
+        }
 
         try (FileWriter fw = new FileWriter(BUDGET_FILE)) {
             fw.write(String.valueOf(budget));
             System.out.println("✅ Budget saved");
-        } catch (Exception e) {
         }
+
+    } catch (InvalidInputException e) {
+        System.out.println("❌ " + e.getMessage());
+    } catch (Exception e) {
+        System.out.println("❌ Invalid budget input");
     }
+}
 
     // ================= ADD EXPENSE =================
     static void addExpense() {
@@ -282,41 +307,52 @@ public class ExpenseTracker {
         System.out.print("Amount: ");
         double amt = Double.parseDouble(sc.nextLine());
 
-       Category cat = null;
+        if (amt <= 0) {
+            throw new InvalidExpenseException("Amount must be greater than 0");
+        }
 
-while (cat == null) {
-    System.out.println("Choose Category:");
-    for (Category c : Category.values()) {
-        System.out.print(c + " ");
-    }
-    System.out.println();
+        Category cat = null;
+        while (cat == null) {
+            System.out.println("Choose Category:");
+            for (Category c : Category.values()) {
+                System.out.print(c + " ");
+            }
+            System.out.println();
 
-    System.out.print("Enter category: ");
-    String input = sc.nextLine().toUpperCase();
+            System.out.print("Enter category: ");
+            String input = sc.nextLine().toUpperCase();
 
-    try {
-        cat = Category.valueOf(input);
-    } catch (IllegalArgumentException e) {
-        System.out.println("❌ Invalid category. Try again.");
-    }
-}
+            try {
+                cat = Category.valueOf(input);
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Invalid category. Try again.");
+            }
+        }
+
         System.out.print("Description: ");
         String desc = sc.nextLine();
 
-        LocalDate date = LocalDate.now();              // 📅 date
-        LocalDateTime timestamp = LocalDateTime.now(); // ⏰ time
+        if (desc.trim().isEmpty()) {
+            throw new InvalidExpenseException("Description cannot be empty");
+        }
+
+        LocalDate date = LocalDate.now();
+        LocalDateTime timestamp = LocalDateTime.now();
 
         fw.write(
-            loggedInUser + "|" +
-            amt + "|" + cat.name() + "|" +
-            date + "|" +
-            timestamp + "|" +
-            desc + "\n"
+                loggedInUser + "|" +
+                amt + "|" +
+                cat.name() + "|" +
+                date + "|" +
+                timestamp + "|" +
+                desc + "\n"
         );
 
-        System.out.println("✅ Expense added with date & time");
+        System.out.println("✅ Expense added successfully");
         checkBudgetAlert();
 
+    } catch (InvalidExpenseException e) {
+        System.out.println("❌ " + e.getMessage());
     } catch (Exception e) {
         System.out.println("❌ Error adding expense");
     }
@@ -381,7 +417,9 @@ while (cat == null) {
     System.out.println("----------------------");
 }
 
-        static void categoryWiseMonthlyReport() {
+
+
+    static void categoryWiseMonthlyReport() {
     System.out.print("Enter month (YYYY-MM): ");
     String monthInput = sc.nextLine();
 
@@ -432,6 +470,8 @@ while (cat == null) {
     System.out.println("--------------------------------");
     System.out.println("TOTAL : ₹" + grandTotal);
 }
+
+
 
     static void viewTotal() {
         ensureFileExists(EXPENSE_FILE);
@@ -489,6 +529,8 @@ while (cat == null) {
         System.out.println("--------------------------------");
     }
 
+
+
     // ================= HELPERS =================
     static boolean userExists(String username) {
         try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
@@ -523,6 +565,8 @@ while (cat == null) {
         }
     }
 
+
+
     static String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -536,6 +580,8 @@ while (cat == null) {
         }
     }
 
+
+
     static void ensureFileExists(String fileName) {
         try {
             File f = new File(fileName);
@@ -547,10 +593,16 @@ while (cat == null) {
         }
     }
 
+
+
+
     static void pause() {
         System.out.println("\nPress ENTER to continue...");
         sc.nextLine();
     }
+
+
+
 
     static void searchExpenses() {
     System.out.print("Enter keyword (category/description): ");
@@ -589,7 +641,9 @@ while (cat == null) {
     }
 }
 
-        static void sortExpensesMenu() {
+
+
+    static void sortExpensesMenu() {
     System.out.println("Sort By:");
     System.out.println("1. Amount (High → Low)");
     System.out.println("2. Date (Newest → Oldest)");
@@ -607,6 +661,9 @@ while (cat == null) {
             System.out.println("Invalid option");
     }
 }
+
+
+
 
 static List<Expense> loadUserExpenses() {
     List<Expense> list = new ArrayList<>();
@@ -630,6 +687,8 @@ static List<Expense> loadUserExpenses() {
     return list;
 }
 
+
+
 static void sortByAmount() {
     List<Expense> list = loadUserExpenses();
 
@@ -639,6 +698,9 @@ static void sortByAmount() {
         System.out.println("₹" + e.amount + " | " + e.category + " | " + e.date + " | " + e.description);
     }
 }
+
+
+
 
 static void sortByDate() {
     List<Expense> list = loadUserExpenses();
