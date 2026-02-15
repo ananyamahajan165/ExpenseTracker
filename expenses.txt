@@ -1,3 +1,2 @@
-ananya|10.0|food|patty
-ananya|100.0|food|patty
-ananya|100.0|food|pizza
+ananya|30.0|FOOD|2026-02-15|2026-02-15T12:26:02.616400|samosa
+ananya|100.0|FOOD|2026-02-15|2026-02-15T12:30:58.065062|pizza
