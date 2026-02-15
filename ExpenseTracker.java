@@ -312,21 +312,23 @@ public class ExpenseTracker {
         }
 
         Category cat = null;
-        while (cat == null) {
-            System.out.println("Choose Category:");
-            for (Category c : Category.values()) {
-                System.out.print(c + " ");
-            }
-            System.out.println();
 
-            System.out.print("Enter category: ");
-            String input = sc.nextLine().toUpperCase();
+while (cat == null) {
+    System.out.println("Choose Category:");
+    Category[] categories = Category.values();
 
-            try {
-                cat = Category.valueOf(input);
-            } catch (IllegalArgumentException e) {
-                System.out.println("❌ Invalid category. Try again.");
-            }
+    for (int i = 0; i < categories.length; i++) {
+        System.out.println((i + 1) + ". " + categories[i]);
+    }
+
+    int choice = readInt("Enter category number: ");
+
+    if (choice >= 1 && choice <= categories.length) {
+        cat = categories[choice - 1];
+    } else {
+        System.out.println("❌ Invalid choice. Try again.");
+    }
+
         }
 
         System.out.print("Description: ");
