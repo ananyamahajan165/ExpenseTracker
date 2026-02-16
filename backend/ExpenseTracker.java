@@ -643,16 +643,10 @@ while (cat == null) {
         }
     }
 
-    static String readPassword(String msg) {
-        Console c = System.console();
-        if (c != null) {
-            return new String(c.readPassword(msg));
-        } else {
-            System.out.print(msg);
-            return sc.nextLine();
-        }
-    }
-
+static String readPassword(String msg) {
+    System.out.print(msg);
+    return sc.nextLine().trim();   // 🔥 TRIM IS IMPORTANT
+}
 
 
     static String hashPassword(String password) {
@@ -802,18 +796,22 @@ static void sortByDate() {
     }
 
     static Map<String, String> parseJson(String json) {
-        Map<String, String> map = new HashMap<>();
+    Map<String, String> map = new HashMap<>();
 
-        json = json.trim().replaceAll("[{}\"]", "");
-        String[] pairs = json.split(",");
-
-        for (String pair : pairs) {
-            String[] kv = pair.split(":");
-            if (kv.length == 2) {
-                map.put(kv[0].trim(), kv[1].trim());
-            }
-        }
+    if (json == null || json.trim().isEmpty()) {
         return map;
     }
 
+    json = json.trim().replaceAll("[{}\"]", "");
+    String[] pairs = json.split(",");
+
+    for (String pair : pairs) {
+        String[] kv = pair.split(":");
+        if (kv.length == 2) {
+            map.put(kv[0].trim(), kv[1].trim());
+        }
+    }
+
+    return map;
+}
 }
