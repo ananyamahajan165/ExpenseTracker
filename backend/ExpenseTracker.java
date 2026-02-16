@@ -3,6 +3,10 @@ import java.io.*;
 import java.security.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
+import java.net.InetSocketAddress;
 
 class InvalidExpenseException extends Exception {
     public InvalidExpenseException(String message) {
@@ -32,6 +36,28 @@ public class ExpenseTracker {
     OTHER
 }
 
+    static void startServer() {
+    try {
+        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+
+        server.createContext("/health", exchange -> {
+            String response = "Backend is running";
+            exchange.sendResponseHeaders(200, response.length());
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.close();
+        });
+
+        server.setExecutor(null);
+        server.start();
+
+        System.out.println("🚀 Server started at http://localhost:8080");
+
+    } catch (Exception e) {
+        System.out.println("❌ Failed to start server");
+        e.printStackTrace();
+    }
+}
+
     static class Expense {
     double amount;
     String category;
@@ -47,15 +73,17 @@ public class ExpenseTracker {
 }
 
     // ================= MAIN =================
-    public static void main(String[] args) {
-        while (true) {
-            if (loggedInUser == null) {
-                userMenu();
-            } else {
-                expenseMenu();
-            }
+public static void main(String[] args) {
+    startServer();   // start HTTP server
+
+    while (true) {
+        if (loggedInUser == null) {
+            userMenu();
+        } else {
+            expenseMenu();
         }
     }
+}
 
     // ================= USER MENU =================
     static void userMenu() {
