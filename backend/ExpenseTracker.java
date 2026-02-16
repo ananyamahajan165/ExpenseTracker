@@ -8,17 +8,6 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import java.net.InetSocketAddress;
 
-class InvalidExpenseException extends Exception {
-    public InvalidExpenseException(String message) {
-        super(message);
-    }
-}
-
-class InvalidInputException extends Exception {
-    public InvalidInputException(String message) {
-        super(message);
-    }
-}
 public class ExpenseTracker {
 
     static Scanner sc = new Scanner(System.in);
@@ -36,10 +25,22 @@ public class ExpenseTracker {
     OTHER
 }
 
-    static void startServer() {
+static class InvalidExpenseException extends Exception {
+    public InvalidExpenseException(String message) {
+        super(message);
+    }
+}
+
+static class InvalidInputException extends Exception {
+    public InvalidInputException(String message) {
+        super(message);
+    }
+}
+static void startServer() {
     try {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
+        // -------- HEALTH CHECK --------
         server.createContext("/health", exchange -> {
             String response = "Backend is running";
             exchange.sendResponseHeaders(200, response.length());
@@ -47,7 +48,64 @@ public class ExpenseTracker {
             exchange.close();
         });
 
-        server.setExecutor(null);
+        // -------- ADD EXPENSE API --------
+        server.createContext("/add-expense", new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                // Allow only POST
+                if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+                    exchange.sendResponseHeaders(405, -1);
+                    return;
+                }
+
+                // Read request body
+                InputStream is = exchange.getRequestBody();
+                String body = new String(is.readAllBytes());
+
+                try {
+                    // Parse JSON
+                    Map<String, String> data = parseJson(body);
+
+                    if (loggedInUser == null) {
+                        throw new RuntimeException("User not logged in");
+                    }
+
+                    double amount = Double.parseDouble(data.get("amount"));
+                    String category = data.get("category");
+                    String description = data.get("description");
+
+                    if (amount <= 0 || description == null || description.trim().isEmpty()) {
+                        throw new RuntimeException("Invalid expense data");
+                    }
+
+                    // Save expense (same format as CLI)
+                    try (FileWriter fw = new FileWriter(EXPENSE_FILE, true)) {
+                        fw.write(
+                            loggedInUser + "|" +
+                            amount + "|" +
+                            category + "|" +
+                            LocalDate.now() + "|" +
+                            LocalDateTime.now() + "|" +
+                            description + "\n"
+                        );
+                    }
+
+                    String response = "Expense added successfully";
+                    exchange.sendResponseHeaders(200, response.length());
+                    exchange.getResponseBody().write(response.getBytes());
+
+                } catch (Exception e) {
+                    String error = "Failed to add expense: " + e.getMessage();
+                    exchange.sendResponseHeaders(400, error.length());
+                    exchange.getResponseBody().write(error.getBytes());
+                } finally {
+                    exchange.close();
+                }
+            }
+        });
+
+        server.setExecutor(null); // default executor
         server.start();
 
         System.out.println("🚀 Server started at http://localhost:8080");
@@ -740,5 +798,22 @@ static void sortByDate() {
     for (Expense e : list) {
         System.out.println("₹" + e.amount + " | " + e.category + " | " + e.date + " | " + e.description);
     }
-}
+
+    }
+
+    static Map<String, String> parseJson(String json) {
+        Map<String, String> map = new HashMap<>();
+
+        json = json.trim().replaceAll("[{}\"]", "");
+        String[] pairs = json.split(",");
+
+        for (String pair : pairs) {
+            String[] kv = pair.split(":");
+            if (kv.length == 2) {
+                map.put(kv[0].trim(), kv[1].trim());
+            }
+        }
+        return map;
+    }
+
 }
