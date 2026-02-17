@@ -33,7 +33,6 @@ A console-based **Expense Tracker application** built using **Core Java**, desig
 - Custom exceptions
 - Safe file handling
 
----
 
 ## 🛠️ Tech Stack
 - Java (Core)
