@@ -25,7 +25,7 @@ A console-based **Expense Tracker application** built using **Core Java**, desig
 
 ### 📊 Budgeting
 - Set monthly budget
-- Budget usage alerts (90% warning)
+- Budget usage alerts (warnings)
 - Remaining balance calculation
 
 ### 🛡️ Robustness
