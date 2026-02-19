@@ -42,6 +42,16 @@ static void startServer() {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
         // -------- HEALTH CHECK --------
+
+
+        server.createContext("/health", exchange -> {
+    String response = "OK";
+    exchange.sendResponseHeaders(200, response.length());
+    exchange.getResponseBody().write(response.getBytes());
+    exchange.close();
+});
+
+
         server.createContext("/health", exchange -> {
             String response = "Backend is running";
             exchange.sendResponseHeaders(200, response.length());
