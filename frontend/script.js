@@ -22,3 +22,25 @@ function getSummary() {
             JSON.stringify(data, null, 2);
     });
 }
+
+
+function loadExpenses() {
+    fetch("http://localhost:8080/expenses")
+        .then(res => res.json())
+        .then(data => {
+
+            const tbody = document.querySelector("#expenseTable tbody");
+            tbody.innerHTML = "";
+
+            data.forEach(exp => {
+                const row = `
+                    <tr>
+                        <td>${exp.amount}</td>
+                        <td>${exp.category}</td>
+                        <td>${exp.description}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        });
+}
