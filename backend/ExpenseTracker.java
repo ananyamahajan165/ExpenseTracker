@@ -7,10 +7,11 @@ import java.time.LocalDateTime;
 import com.sun.net.httpserver.HttpServer;
 
 import backend.ExpenseTracker.Expense;
-
+import java.nio.file.Files;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
 
 
 public class ExpenseTracker {
@@ -55,6 +56,39 @@ static void startServer() {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
         // -------- HEALTH CHECK --------
+
+
+        server.createContext("/", exchange -> {
+
+    String path = exchange.getRequestURI().getPath();
+
+    if (path.equals("/")) {
+        path = "/index.html";
+    }
+
+    File file = new File("frontend" + path);
+
+    if (!file.exists()) {
+        exchange.sendResponseHeaders(404, -1);
+        return;
+    }
+
+    String contentType = "text/html";
+
+    if (path.endsWith(".js")) {
+        contentType = "application/javascript";
+    } else if (path.endsWith(".css")) {
+        contentType = "text/css";
+    }
+
+    byte[] response = Files.readAllBytes(file.toPath());
+
+    exchange.getResponseHeaders().set("Content-Type", contentType);
+    exchange.sendResponseHeaders(200, response.length);
+    exchange.getResponseBody().write(response);
+    exchange.close();
+});
+
 server.createContext("/summary", exchange -> {
 
     if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
@@ -67,24 +101,29 @@ server.createContext("/summary", exchange -> {
         double total = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
-            String line;
+    String line;
 
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split("\\|");
+    while ((line = br.readLine()) != null) {
 
-if (parts.length >= 4) {
+        String[] parts = line.split("\\|");
 
-    double amount = Double.parseDouble(parts[1]);   // <-- index 1 now
-    String category = parts[2];                    // <-- index 2
+        if (parts.length < 4) continue;
 
-    total += amount;
+        try {
+            double amount = Double.parseDouble(parts[1]);
+            String category = parts[2];
 
-    categoryTotals.put(
-        category,
-        categoryTotals.getOrDefault(category, 0.0) + amount
-    );
-}
-            }
+            total += amount;
+
+            categoryTotals.put(
+                category,
+                categoryTotals.getOrDefault(category, 0.0) + amount
+            );
+
+        } catch (NumberFormatException e) {
+            continue; // skip corrupted lines
+        }
+    }   
         }
 
         StringBuilder json = new StringBuilder();

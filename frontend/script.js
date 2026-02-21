@@ -1,21 +1,24 @@
-document.getElementById("expenseForm").addEventListener("submit", function (e) {
-    e.preventDefault(); // stop page reload
+const BASE_URL = "http://localhost:8080";
 
+function addExpense() {
     const amount = document.getElementById("amount").value;
     const category = document.getElementById("category").value;
     const description = document.getElementById("description").value;
 
-    if (!amount || !category || !description) {
-        alert("Please fill all fields");
-        return;
-    }
+    fetch(BASE_URL + "/add-expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount, category, description })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message));
+}
 
-    console.log("Expense Data:", {
-        amount,
-        category,
-        description
+function getSummary() {
+    fetch(BASE_URL + "/summary")
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("summary").textContent =
+            JSON.stringify(data, null, 2);
     });
-
-    alert("Expense captured on frontend!");
-    this.reset();
-});
+}
