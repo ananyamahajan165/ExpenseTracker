@@ -5,8 +5,7 @@ import java.security.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.sun.net.httpserver.HttpServer;
-import java.util.List;
-import java.util.ArrayList;
+
 import backend.ExpenseTracker.Expense;
 
 import com.sun.net.httpserver.HttpHandler;
@@ -47,10 +46,9 @@ static void startServer() {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
         // -------- HEALTH CHECK --------
+server.createContext("/expense-update", exchange -> {
 
-server.createContext("/expense", exchange -> {
-
-    if (!exchange.getRequestMethod().equalsIgnoreCase("DELETE")) {
+    if (!exchange.getRequestMethod().equalsIgnoreCase("PUT")) {
         String error = "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}";
         sendJson(exchange, 405, error);
         return;
@@ -67,6 +65,13 @@ server.createContext("/expense", exchange -> {
 
         int index = Integer.parseInt(query.split("=")[1]);
 
+        String body = new String(exchange.getRequestBody().readAllBytes());
+        Map<String, String> data = parseJson(body);
+
+        double amount = Double.parseDouble(data.get("amount"));
+        String category = data.get("category");
+        String description = data.get("description");
+
         List<String> lines = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
@@ -82,7 +87,7 @@ server.createContext("/expense", exchange -> {
             return;
         }
 
-        lines.remove(index);
+        lines.set(index, amount + "|" + category + "|" + description);
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(EXPENSE_FILE))) {
             for (String l : lines) {
@@ -91,7 +96,7 @@ server.createContext("/expense", exchange -> {
             }
         }
 
-        String success = "{\"status\":\"success\",\"message\":\"Expense deleted\"}";
+        String success = "{\"status\":\"success\",\"message\":\"Expense updated\"}";
         sendJson(exchange, 200, success);
 
     } catch (Exception e) {
@@ -99,6 +104,7 @@ server.createContext("/expense", exchange -> {
         sendJson(exchange, 500, error);
     }
 });
+
 
         server.setExecutor(null); // default executor
         server.start();
