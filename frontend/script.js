@@ -11,7 +11,10 @@ function addExpense() {
         body: JSON.stringify({ amount, category, description })
     })
     .then(res => res.json())
-    .then(data => alert(data.message));
+    .then(data => {
+    alert(data.message);
+    loadExpenses();
+});
 }
 
 function getSummary() {
