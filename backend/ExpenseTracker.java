@@ -5,6 +5,9 @@ import java.security.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.sun.net.httpserver.HttpServer;
+
+import backend.ExpenseTracker.Expense;
+
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import java.net.InetSocketAddress;
@@ -52,61 +55,48 @@ static void startServer() {
 });
 
         // -------- ADD EXPENSE API --------
-        server.createContext("/add-expense", new HttpHandler() {
-            @Override
-            public void handle(HttpExchange exchange) throws IOException {
 
-                // Allow only POST
-                if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
-                    exchange.sendResponseHeaders(405, -1);
-                    return;
-                }
+        server.createContext("/add-expense", exchange -> {
 
-                // Read request body
-                InputStream is = exchange.getRequestBody();
-                String body = new String(is.readAllBytes());
+    if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+        String error = "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}";
+        sendJson(exchange, 405, error);
+        return;
+    }
 
-                try {
-                    // Parse JSON
-                    Map<String, String> data = parseJson(body);
+    try {
+        if (loggedInUser == null) {
+            String error = "{\"status\":\"error\",\"message\":\"User not logged in\"}";
+            sendJson(exchange, 401, error);
+            return;
+        }
 
-                    if (loggedInUser == null) {
-                        throw new RuntimeException("User not logged in");
-                    }
+        String body = new String(exchange.getRequestBody().readAllBytes());
+        Map<String, String> data = parseJson(body);
 
-                    double amount = Double.parseDouble(data.get("amount"));
-                    String category = data.get("category");
-                    String description = data.get("description");
+        double amount = Double.parseDouble(data.get("amount"));
+        String category = data.get("category");
+        String description = data.get("description");
 
-                    if (amount <= 0 || description == null || description.trim().isEmpty()) {
-                        throw new RuntimeException("Invalid expense data");
-                    }
+        if (amount <= 0 || description == null || description.trim().isEmpty()) {
+            throw new InvalidInputException("Invalid expense data");
+        }
 
-                    // Save expense (same format as CLI)
-                    try (FileWriter fw = new FileWriter(EXPENSE_FILE, true)) {
-                        fw.write(
-                            loggedInUser + "|" +
-                            amount + "|" +
-                            category + "|" +
-                            LocalDate.now() + "|" +
-                            LocalDateTime.now() + "|" +
-                            description + "\n"
-                        );
-                    }
+        // ---- your existing save logic here ----
+        saveExpense(amount, category, description); // or whatever method you use
 
-                    String response = "Expense added successfully";
-                    exchange.sendResponseHeaders(200, response.length());
-                    exchange.getResponseBody().write(response.getBytes());
+        String success = "{\"status\":\"success\",\"message\":\"Expense added successfully\"}";
+        sendJson(exchange, 201, success);
 
-                } catch (Exception e) {
-                    String error = "Failed to add expense: " + e.getMessage();
-                    exchange.sendResponseHeaders(400, error.length());
-                    exchange.getResponseBody().write(error.getBytes());
-                } finally {
-                    exchange.close();
-                }
-            }
-        });
+    } catch (InvalidInputException e) {
+        String error = "{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}";
+        sendJson(exchange, 400, error);
+
+    } catch (Exception e) {
+        String error = "{\"status\":\"error\",\"message\":\"Internal Server Error\"}";
+        sendJson(exchange, 500, error);
+    }
+});
 
         server.setExecutor(null); // default executor
         server.start();
@@ -119,6 +109,15 @@ static void startServer() {
     }
 }
 
+
+
+static void saveExpense(double amount, String category, String description) {
+    try (FileWriter fw = new FileWriter(EXPENSE_FILE, true)) {
+        fw.write(amount + "|" + category + "|" + description + "\n");
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}   
 
 
 
