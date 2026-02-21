@@ -32,6 +32,11 @@ public class ExpenseTracker {
 }
 
 
+static void enableCors(HttpExchange exchange) {
+    exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+    exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+}
+
 
 static class InvalidExpenseException extends Exception {
     public InvalidExpenseException(String message) {
@@ -97,8 +102,7 @@ server.createContext("/summary", exchange -> {
     }
 
     try {
-        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+enableCors(exchange);
 
         Map<String, Double> categoryTotals = new HashMap<>();
         double total = 0;
