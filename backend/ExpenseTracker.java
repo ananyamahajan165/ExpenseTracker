@@ -1,3 +1,4 @@
+package backend;
 import java.util.*;
 import java.io.*;
 import java.security.*;
@@ -14,9 +15,9 @@ public class ExpenseTracker {
     static Scanner sc = new Scanner(System.in);
     static String loggedInUser = null;
 
-    static final String USER_FILE = "../data/users.txt";
-    static final String EXPENSE_FILE = "../data/expenses.txt";
-    static final String BUDGET_FILE = "../data/budget.txt";
+    static final String USER_FILE = "data/users.txt";
+    static final String EXPENSE_FILE = "data/expenses.txt";
+    static final String BUDGET_FILE = "data/budget.txt";
     enum Category {
     FOOD,
     TRAVEL,
@@ -43,21 +44,12 @@ static void startServer() {
 
         // -------- HEALTH CHECK --------
 
-
         server.createContext("/health", exchange -> {
-    String response = "OK";
+    String response = "Backend is running";
     exchange.sendResponseHeaders(200, response.length());
     exchange.getResponseBody().write(response.getBytes());
     exchange.close();
 });
-
-
-        server.createContext("/health", exchange -> {
-            String response = "Backend is running";
-            exchange.sendResponseHeaders(200, response.length());
-            exchange.getResponseBody().write(response.getBytes());
-            exchange.close();
-        });
 
         // -------- ADD EXPENSE API --------
         server.createContext("/add-expense", new HttpHandler() {
@@ -127,6 +119,9 @@ static void startServer() {
     }
 }
 
+
+
+
     static class Expense {
     double amount;
     String category;
@@ -141,6 +136,10 @@ static void startServer() {
     }
 }
 
+
+
+
+
     // ================= MAIN =================
 public static void main(String[] args) {
     startServer();   // start HTTP server
@@ -153,6 +152,11 @@ public static void main(String[] args) {
         }
     }
 }
+
+
+
+
+
 
     // ================= USER MENU =================
     static void userMenu() {
@@ -189,6 +193,10 @@ public static void main(String[] args) {
                 pause();
         }
     }
+
+
+
+
 
     // ================= EXPENSE MENU =================
     static void expenseMenu() {
@@ -255,6 +263,10 @@ public static void main(String[] args) {
         }
     }
 
+
+
+
+
     // ================= REGISTER =================
     static void register() {
         System.out.print("Choose username: ");
@@ -276,6 +288,9 @@ public static void main(String[] args) {
         }
     }
 
+
+
+
     // ================= LOGIN =================
     static void login() {
         System.out.print("Username: ");
@@ -288,7 +303,12 @@ public static void main(String[] args) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] d = line.split("\\|");
-                if (d[0].equals(u) && d[1].equals(hashed)) {
+                System.out.println("Entered username: [" + u + "]");
+System.out.println("Entered hash: [" + hashed + "]");
+System.out.println("File username: [" + d[0] + "]");
+System.out.println("File hash: [" + d[1] + "]");
+System.out.println("----------");
+                if (d[0].trim().equals(u) && d[1].trim().equals(hashed)) {
                     loggedInUser = u;
                     System.out.println("✅ Login successful");
                     return;
@@ -299,6 +319,11 @@ public static void main(String[] args) {
 
         System.out.println("❌ Invalid credentials");
     }
+
+
+
+
+
 
     // ================= FORGOT PASSWORD =================
     static void forgotPassword() {
@@ -334,6 +359,8 @@ public static void main(String[] args) {
         } catch (Exception e) {
         }
     }
+
+
 
 
 
@@ -375,6 +402,8 @@ public static void main(String[] args) {
 
 
 
+
+
     // ================= SET BUDGET =================
     static void setBudget() {
     try {
@@ -396,6 +425,9 @@ public static void main(String[] args) {
         System.out.println("❌ Invalid budget input");
     }
 }
+
+
+
 
     // ================= ADD EXPENSE =================
     static void addExpense() {
@@ -457,6 +489,9 @@ while (cat == null) {
     }
 }
 
+
+
+
     // ================= ALERT =================
     static void checkBudgetAlert() {
         double total = 0, budget;
@@ -482,6 +517,9 @@ while (cat == null) {
             System.out.println("⚠️ ALERT: You have used 90% of your budget!");
         }
     }
+
+
+
 
     // ================= VIEW =================
     static void viewExpenses() {
@@ -515,6 +553,8 @@ while (cat == null) {
 
     System.out.println("----------------------");
 }
+
+
 
 
 
@@ -569,6 +609,8 @@ while (cat == null) {
     System.out.println("--------------------------------");
     System.out.println("TOTAL : ₹" + grandTotal);
 }
+
+
 
 
 
@@ -630,6 +672,8 @@ while (cat == null) {
 
 
 
+
+
     // ================= HELPERS =================
     static boolean userExists(String username) {
         try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
@@ -643,6 +687,10 @@ while (cat == null) {
         return false;
     }
 
+
+
+
+
     static int readInt(String msg) {
         while (true) {
             try {
@@ -654,10 +702,15 @@ while (cat == null) {
         }
     }
 
+
+
+
 static String readPassword(String msg) {
     System.out.print(msg);
     return sc.nextLine().trim();   // 🔥 TRIM IS IMPORTANT
 }
+
+
 
 
     static String hashPassword(String password) {
@@ -685,6 +738,17 @@ static String readPassword(String msg) {
             System.out.println("❌ Error creating file: " + fileName);
         }
     }
+
+
+
+
+static void sendJson(HttpExchange exchange, int status, String json) throws IOException {
+    exchange.getResponseHeaders().add("Content-Type", "application/json");
+    exchange.sendResponseHeaders(status, json.getBytes().length);
+    exchange.getResponseBody().write(json.getBytes());
+    exchange.close();
+}
+
 
 
 
@@ -805,6 +869,9 @@ static void sortByDate() {
     }
 
     }
+
+
+
 
     static Map<String, String> parseJson(String json) {
     Map<String, String> map = new HashMap<>();
