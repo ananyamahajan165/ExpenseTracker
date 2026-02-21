@@ -5,7 +5,8 @@ import java.security.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.sun.net.httpserver.HttpServer;
-
+import java.util.List;
+import java.util.ArrayList;
 import backend.ExpenseTracker.Expense;
 
 import com.sun.net.httpserver.HttpHandler;
@@ -47,40 +48,51 @@ static void startServer() {
 
         // -------- HEALTH CHECK --------
 
-server.createContext("/expenses", exchange -> {
+server.createContext("/expense", exchange -> {
 
-    if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
+    if (!exchange.getRequestMethod().equalsIgnoreCase("DELETE")) {
         String error = "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}";
         sendJson(exchange, 405, error);
         return;
     }
 
     try {
-        StringBuilder json = new StringBuilder();
-        json.append("[");
+        String query = exchange.getRequestURI().getQuery();
+
+        if (query == null || !query.startsWith("index=")) {
+            String error = "{\"status\":\"error\",\"message\":\"Index required\"}";
+            sendJson(exchange, 400, error);
+            return;
+        }
+
+        int index = Integer.parseInt(query.split("=")[1]);
+
+        List<String> lines = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
             String line;
-            boolean first = true;
-
             while ((line = br.readLine()) != null) {
-                String[] parts = line.split("\\|");
-
-                if (parts.length >= 3) {
-                    if (!first) json.append(",");
-                    first = false;
-
-                    json.append("{")
-                        .append("\"amount\":").append(parts[0]).append(",")
-                        .append("\"category\":\"").append(parts[1]).append("\",")
-                        .append("\"description\":\"").append(parts[2]).append("\"")
-                        .append("}");
-                }
+                lines.add(line);
             }
         }
 
-        json.append("]");
-        sendJson(exchange, 200, json.toString());
+        if (index < 0 || index >= lines.size()) {
+            String error = "{\"status\":\"error\",\"message\":\"Invalid index\"}";
+            sendJson(exchange, 400, error);
+            return;
+        }
+
+        lines.remove(index);
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(EXPENSE_FILE))) {
+            for (String l : lines) {
+                bw.write(l);
+                bw.newLine();
+            }
+        }
+
+        String success = "{\"status\":\"success\",\"message\":\"Expense deleted\"}";
+        sendJson(exchange, 200, success);
 
     } catch (Exception e) {
         String error = "{\"status\":\"error\",\"message\":\"Internal Server Error\"}";
