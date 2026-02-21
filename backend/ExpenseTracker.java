@@ -316,11 +316,11 @@ public static void main(String[] args) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] d = line.split("\\|");
-                System.out.println("Entered username: [" + u + "]");
-System.out.println("Entered hash: [" + hashed + "]");
-System.out.println("File username: [" + d[0] + "]");
-System.out.println("File hash: [" + d[1] + "]");
-System.out.println("----------");
+//                 System.out.println("Entered username: [" + u + "]");
+// System.out.println("Entered hash: [" + hashed + "]");
+// System.out.println("File username: [" + d[0] + "]");
+// System.out.println("File hash: [" + d[1] + "]");
+         System.out.println("----------");
                 if (d[0].trim().equals(u) && d[1].trim().equals(hashed)) {
                     loggedInUser = u;
                     System.out.println("✅ Login successful");
