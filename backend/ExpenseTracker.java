@@ -30,78 +30,83 @@ public class ExpenseTracker {
     OTHER
 }
 
+
+
 static class InvalidExpenseException extends Exception {
     public InvalidExpenseException(String message) {
         super(message);
     }
 }
 
+
+
+
 static class InvalidInputException extends Exception {
     public InvalidInputException(String message) {
         super(message);
     }
 }
+
+
+
+
 static void startServer() {
     try {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
         // -------- HEALTH CHECK --------
-server.createContext("/expense-update", exchange -> {
+server.createContext("/summary", exchange -> {
 
-    if (!exchange.getRequestMethod().equalsIgnoreCase("PUT")) {
-        String error = "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}";
-        sendJson(exchange, 405, error);
+    if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
+        sendJson(exchange, 405, "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
         return;
     }
 
     try {
-        String query = exchange.getRequestURI().getQuery();
-
-        if (query == null || !query.startsWith("index=")) {
-            String error = "{\"status\":\"error\",\"message\":\"Index required\"}";
-            sendJson(exchange, 400, error);
-            return;
-        }
-
-        int index = Integer.parseInt(query.split("=")[1]);
-
-        String body = new String(exchange.getRequestBody().readAllBytes());
-        Map<String, String> data = parseJson(body);
-
-        double amount = Double.parseDouble(data.get("amount"));
-        String category = data.get("category");
-        String description = data.get("description");
-
-        List<String> lines = new ArrayList<>();
+        Map<String, Double> categoryTotals = new HashMap<>();
+        double total = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
             String line;
+
             while ((line = br.readLine()) != null) {
-                lines.add(line);
+                String[] parts = line.split("\\|");
+
+if (parts.length >= 4) {
+
+    double amount = Double.parseDouble(parts[1]);   // <-- index 1 now
+    String category = parts[2];                    // <-- index 2
+
+    total += amount;
+
+    categoryTotals.put(
+        category,
+        categoryTotals.getOrDefault(category, 0.0) + amount
+    );
+}
             }
         }
 
-        if (index < 0 || index >= lines.size()) {
-            String error = "{\"status\":\"error\",\"message\":\"Invalid index\"}";
-            sendJson(exchange, 400, error);
-            return;
+        StringBuilder json = new StringBuilder();
+        json.append("{");
+        json.append("\"total\":").append(total).append(",");
+        json.append("\"byCategory\":{");
+
+        boolean first = true;
+        for (String cat : categoryTotals.keySet()) {
+            if (!first) json.append(",");
+            first = false;
+            json.append("\"").append(cat).append("\":")
+                .append(categoryTotals.get(cat));
         }
 
-        lines.set(index, amount + "|" + category + "|" + description);
+        json.append("}}");
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(EXPENSE_FILE))) {
-            for (String l : lines) {
-                bw.write(l);
-                bw.newLine();
-            }
-        }
-
-        String success = "{\"status\":\"success\",\"message\":\"Expense updated\"}";
-        sendJson(exchange, 200, success);
+        sendJson(exchange, 200, json.toString());
 
     } catch (Exception e) {
-        String error = "{\"status\":\"error\",\"message\":\"Internal Server Error\"}";
-        sendJson(exchange, 500, error);
+        e.printStackTrace();
+        sendJson(exchange, 500, "{\"status\":\"error\",\"message\":\"Internal Server Error\"}");
     }
 });
 
@@ -112,6 +117,7 @@ server.createContext("/expense-update", exchange -> {
         System.out.println("🚀 Server started at http://localhost:8080");
 
     } catch (Exception e) {
+        e.printStackTrace();
         System.out.println("❌ Failed to start server");
         e.printStackTrace();
     }
