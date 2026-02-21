@@ -97,6 +97,9 @@ server.createContext("/summary", exchange -> {
     }
 
     try {
+        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
         Map<String, Double> categoryTotals = new HashMap<>();
         double total = 0;
 
@@ -141,6 +144,8 @@ server.createContext("/summary", exchange -> {
 
         json.append("}}");
 
+        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
         sendJson(exchange, 200, json.toString());
 
     } catch (Exception e) {
