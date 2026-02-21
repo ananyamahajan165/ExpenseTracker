@@ -47,50 +47,40 @@ static void startServer() {
 
         // -------- HEALTH CHECK --------
 
-        server.createContext("/health", exchange -> {
-    String response = "Backend is running";
-    exchange.sendResponseHeaders(200, response.length());
-    exchange.getResponseBody().write(response.getBytes());
-    exchange.close();
-});
+server.createContext("/expenses", exchange -> {
 
-        // -------- ADD EXPENSE API --------
-
-        server.createContext("/add-expense", exchange -> {
-
-    if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+    if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
         String error = "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}";
         sendJson(exchange, 405, error);
         return;
     }
 
     try {
-        if (loggedInUser == null) {
-            String error = "{\"status\":\"error\",\"message\":\"User not logged in\"}";
-            sendJson(exchange, 401, error);
-            return;
+        StringBuilder json = new StringBuilder();
+        json.append("[");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+            String line;
+            boolean first = true;
+
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split("\\|");
+
+                if (parts.length >= 3) {
+                    if (!first) json.append(",");
+                    first = false;
+
+                    json.append("{")
+                        .append("\"amount\":").append(parts[0]).append(",")
+                        .append("\"category\":\"").append(parts[1]).append("\",")
+                        .append("\"description\":\"").append(parts[2]).append("\"")
+                        .append("}");
+                }
+            }
         }
 
-        String body = new String(exchange.getRequestBody().readAllBytes());
-        Map<String, String> data = parseJson(body);
-
-        double amount = Double.parseDouble(data.get("amount"));
-        String category = data.get("category");
-        String description = data.get("description");
-
-        if (amount <= 0 || description == null || description.trim().isEmpty()) {
-            throw new InvalidInputException("Invalid expense data");
-        }
-
-        // ---- your existing save logic here ----
-        saveExpense(amount, category, description); // or whatever method you use
-
-        String success = "{\"status\":\"success\",\"message\":\"Expense added successfully\"}";
-        sendJson(exchange, 201, success);
-
-    } catch (InvalidInputException e) {
-        String error = "{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}";
-        sendJson(exchange, 400, error);
+        json.append("]");
+        sendJson(exchange, 200, json.toString());
 
     } catch (Exception e) {
         String error = "{\"status\":\"error\",\"message\":\"Internal Server Error\"}";
