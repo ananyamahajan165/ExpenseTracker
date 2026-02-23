@@ -94,7 +94,7 @@ static void startServer() {
     exchange.close();
 });
 
-server.createContext("/summary", exchange -> {
+server.createContext("/login", exchange -> {
 
     if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
         sendJson(exchange, 405, "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
