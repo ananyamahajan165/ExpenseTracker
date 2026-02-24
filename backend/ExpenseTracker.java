@@ -362,25 +362,20 @@ public static void main(String[] args) {
         String p = readPassword("Password: ");
         String hashed = hashPassword(p);
 
-        try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] d = line.split("\\|");
-//                 System.out.println("Entered username: [" + u + "]");
-// System.out.println("Entered hash: [" + hashed + "]");
-// System.out.println("File username: [" + d[0] + "]");
-// System.out.println("File hash: [" + d[1] + "]");
-         System.out.println("----------");
-                if (d[0].trim().equals(u) && d[1].trim().equals(hashed)) {
-                    loggedInUser = u;
-                    System.out.println("✅ Login successful");
-                    return;
-                }
-            }
-        } catch (Exception e) {
-        }
+        try {
+    boolean valid = FileService.validateUser(USER_FILE, u, hashed);
 
-        System.out.println("❌ Invalid credentials");
+    if (valid) {
+        loggedInUser = u;
+        System.out.println("✅ Login successful");
+        return;
+    }
+
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+System.out.println("❌ Invalid credentials");
     }
 
 
