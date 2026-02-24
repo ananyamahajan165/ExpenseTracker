@@ -174,13 +174,15 @@ exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type"
 
 
 static void saveExpense(double amount, String category, String description) {
-    try (FileWriter fw = new FileWriter(EXPENSE_FILE, true)) {
-        fw.write(amount + "|" + category + "|" + description + "\n");
+
+    String data = amount + "|" + category + "|" + description;
+
+    try {
+        FileService.appendToFile(EXPENSE_FILE, data);
     } catch (IOException e) {
         e.printStackTrace();
     }
-}   
-
+}
 
 
     static class Expense {
