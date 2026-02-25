@@ -1,3 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h1>Expense Tracker</h1>
+
+<h2>Add Expense</h2>
+<input type="number" id="amount" placeholder="Amount">
+<input type="text" id="category" placeholder="Category">
+<input type="text" id="description" placeholder="Description">
+<button onclick="addExpense()">Add</button>
+
 <h2>All Expenses</h2>
 <button onclick="loadExpenses()">Refresh</button>
 
@@ -11,3 +27,12 @@
     </thead>
     <tbody></tbody>
 </table>
+
+<h2>Summary Chart</h2>
+<button onclick="getSummary()">Show Summary</button>
+<canvas id="expenseChart"></canvas>
+
+<script src="script.js"></script>
+
+</body>
+</html>
