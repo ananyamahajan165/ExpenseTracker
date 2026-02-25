@@ -38,10 +38,6 @@ public class ExpenseTracker {
 }
 
 
-static void enableCors(HttpExchange exchange) {
-    exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-    exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
-}
 
 
 static class InvalidExpenseException extends Exception {
@@ -69,6 +65,8 @@ static void startServer() {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
         // -------- HEALTH CHECK --------
+
+        
 
 server.createContext("/", exchange -> {
 
@@ -103,16 +101,15 @@ server.createContext("/", exchange -> {
 
 
 
-server.createContext("/login", exchange -> {
+server.createContext("/summary", exchange -> {
+
+    enableCors(exchange);   // ✅ FIRST LINE
 
     if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
         sendJson(exchange, 405, "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
         return;
     }
-
-    try {
-enableCors(exchange);
-
+    try {   
         Map<String, Double> categoryTotals = new HashMap<>();
         double total = 0;
 
@@ -156,9 +153,6 @@ enableCors(exchange);
         }
 
         json.append("}}");
-
-        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
         sendJson(exchange, 200, json.toString());
 
     } catch (Exception e) {
@@ -178,6 +172,12 @@ exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type"
         System.out.println("❌ Failed to start server");
         e.printStackTrace();
     }
+    
+}
+
+static void enableCors(HttpExchange exchange) {
+    exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+    exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
 }
 
 
