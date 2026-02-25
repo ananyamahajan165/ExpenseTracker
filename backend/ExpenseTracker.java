@@ -63,6 +63,8 @@ static class InvalidInputException extends Exception {
 
 
 static void startServer() {
+
+    
     try {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
@@ -98,6 +100,8 @@ server.createContext("/", exchange -> {
     exchange.getResponseBody().write(response);
     exchange.close();
 });
+
+
 
 server.createContext("/login", exchange -> {
 
