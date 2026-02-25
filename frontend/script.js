@@ -12,38 +12,53 @@ function addExpense() {
     })
     .then(res => res.json())
     .then(data => {
-    alert(data.message);
-    loadExpenses();
-});
+        alert(data.message);
+        loadExpenses();
+    });
+}
+
+function loadExpenses() {
+    fetch(BASE_URL + "/expenses")
+    .then(res => res.json())
+    .then(data => {
+
+        const tbody = document.querySelector("#expenseTable tbody");
+        tbody.innerHTML = "";
+
+        data.forEach(exp => {
+            const row = `
+                <tr>
+                    <td>${exp.amount}</td>
+                    <td>${exp.category}</td>
+                    <td>${exp.description}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    });
 }
 
 function getSummary() {
     fetch(BASE_URL + "/summary")
     .then(res => res.json())
     .then(data => {
-        document.getElementById("summary").textContent =
-            JSON.stringify(data, null, 2);
+        renderChart(data);
     });
 }
 
+function renderChart(data) {
+    const ctx = document.getElementById("expenseChart").getContext("2d");
 
-function loadExpenses() {
-    fetch("http://localhost:8080/expenses")
-        .then(res => res.json())
-        .then(data => {
+    const labels = Object.keys(data.byCategory);
+    const values = Object.values(data.byCategory);
 
-            const tbody = document.querySelector("#expenseTable tbody");
-            tbody.innerHTML = "";
-
-            data.forEach(exp => {
-                const row = `
-                    <tr>
-                        <td>${exp.amount}</td>
-                        <td>${exp.category}</td>
-                        <td>${exp.description}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        });
+    new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values
+            }]
+        }
+    });
 }
