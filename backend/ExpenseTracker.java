@@ -68,8 +68,7 @@ static void startServer() {
 
         // -------- HEALTH CHECK --------
 
-
-        server.createContext("/", exchange -> {
+server.createContext("/", exchange -> {
 
     String path = exchange.getRequestURI().getPath();
 
