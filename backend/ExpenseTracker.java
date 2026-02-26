@@ -215,16 +215,7 @@ static void saveExpense(double amount, String category, String description) {
     // ================= MAIN =================
 public static void main(String[] args) {
     startServer();   // start HTTP server
-
-    while (true) {
-        if (loggedInUser == null) {
-            userMenu();
-        } else {
-            expenseMenu();
-        }
-    }
 }
-
 
 
 
