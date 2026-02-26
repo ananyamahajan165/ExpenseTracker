@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -161,6 +160,38 @@ server.createContext("/summary", exchange -> {
     }
 });
 
+
+server.createContext("/add-expense", exchange -> {
+
+    enableCors(exchange);
+
+    if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+        sendJson(exchange, 405,
+            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        return;
+    }
+
+    try {
+
+        String body = new String(exchange.getRequestBody().readAllBytes());
+
+        String[] parts = body.split("\\|");
+
+        double amount = Double.parseDouble(parts[0]);
+        String category = parts[1];
+        String description = parts[2];
+
+        saveExpense(amount, category, description);
+
+        sendJson(exchange, 200,
+            "{\"status\":\"success\",\"message\":\"Expense added successfully\"}");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        sendJson(exchange, 500,
+            "{\"status\":\"error\",\"message\":\"Failed to add expense\"}");
+    }
+});
 
 
         server.setExecutor(null); // default executor
