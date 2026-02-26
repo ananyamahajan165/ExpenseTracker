@@ -194,9 +194,8 @@ server.createContext("/add-expense", exchange -> {
 });
 
 
-        server.setExecutor(null); // default executor
-        server.start();
-
+server.setExecutor(null);
+server.start();
         System.out.println("🚀 Server started at http://localhost:8080");
 
     } catch (Exception e) {
