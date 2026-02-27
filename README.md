@@ -8,7 +8,7 @@ A console-based **Expense Tracker application** built using **Core Java**, desig
 
 ### 🔐 User Management
 - User registration & login
-- Password hashing (SHA-256)
+- Password hashing
 - Forgot & change password functionality
 
 ### 💰 Expense Management
