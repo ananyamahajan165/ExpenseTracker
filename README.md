@@ -14,7 +14,7 @@ A console-based **Expense Tracker application** built using **Core Java**, desig
 ### 💰 Expense Management
 - Add expenses with:
   - Amount
-  - Category (Enum-based)
+  - Category Based
   - Date & Timestamp
   - Description
 - View all expenses
