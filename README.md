@@ -42,6 +42,5 @@ A console-based **Expense Tracker application** built using **Core Java**, desig
 - Custom Exceptions
 - SHA-256 Password Hashing
 
----
 
 ## 📁 Project Structure
