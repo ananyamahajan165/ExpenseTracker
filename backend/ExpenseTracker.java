@@ -161,6 +161,59 @@ server.createContext("/summary", exchange -> {
 });
 
 
+server.createContext("/expenses", exchange -> {
+
+    enableCors(exchange);
+
+    if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
+        sendJson(exchange, 405,
+            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        return;
+    }
+
+    try {
+        StringBuilder json = new StringBuilder();
+        json.append("[");
+
+        boolean first = true;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+
+                String[] parts = line.split("\\|");
+
+                if (parts.length >= 6) {
+
+                    if (!first) json.append(",");
+                    first = false;
+
+                    json.append("{")
+                        .append("\"amount\":").append(parts[1]).append(",")
+                        .append("\"category\":\"").append(parts[2]).append("\",")
+                        .append("\"date\":\"").append(parts[3]).append("\",")
+                        .append("\"timestamp\":\"").append(parts[4]).append("\",")
+                        .append("\"description\":\"").append(parts[5]).append("\"")
+                        .append("}");
+                }
+            }
+        }
+
+        json.append("]");
+
+        sendJson(exchange, 200, json.toString());
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        sendJson(exchange, 500,
+            "{\"status\":\"error\",\"message\":\"Failed to load expenses\"}");
+    }
+});
+
+
+
+
 server.createContext("/delete-expense", exchange -> {
 
     enableCors(exchange);
