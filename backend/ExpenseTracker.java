@@ -161,6 +161,65 @@ server.createContext("/summary", exchange -> {
 });
 
 
+server.createContext("/delete-expense", exchange -> {
+
+    enableCors(exchange);
+
+    if (!exchange.getRequestMethod().equalsIgnoreCase("DELETE")) {
+        sendJson(exchange, 405,
+            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        return;
+    }
+
+    try {
+        String path = exchange.getRequestURI().getPath();
+        String[] parts = path.split("/");
+
+        if (parts.length < 3) {
+            sendJson(exchange, 400,
+                "{\"status\":\"error\",\"message\":\"Invalid ID\"}");
+            return;
+        }
+
+        String timestampToDelete = parts[2];
+
+        File inputFile = new File(EXPENSE_FILE);
+        List<String> updatedLines = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(inputFile))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+
+                String[] data = line.split("\\|");
+
+                if (data.length >= 6) {
+                    String timestamp = data[4];
+
+                    if (!timestamp.equals(timestampToDelete)) {
+                        updatedLines.add(line);
+                    }
+                }
+            }
+        }
+
+        try (FileWriter fw = new FileWriter(inputFile)) {
+            for (String l : updatedLines) {
+                fw.write(l + "\n");
+            }
+        }
+
+        sendJson(exchange, 200,
+            "{\"status\":\"success\",\"message\":\"Expense deleted\"}");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        sendJson(exchange, 500,
+            "{\"status\":\"error\",\"message\":\"Delete failed\"}");
+    }
+});
+
+
+
 server.createContext("/add-expense", exchange -> {
 
     enableCors(exchange);
