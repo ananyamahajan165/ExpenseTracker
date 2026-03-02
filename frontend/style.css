@@ -47,3 +47,12 @@ ul {
   list-style: none;
   padding: 0;
 }
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #a71d2a;
+}

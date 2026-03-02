@@ -33,18 +33,51 @@ function loadExpenses() {
         tbody.innerHTML = "";
 
         data.forEach(exp => {
-            const row = `
-                <tr>
-                    <td>${exp.amount}</td>
-                    <td>${exp.category}</td>
-                    <td>${exp.description}</td>
-                </tr>
+
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>₹${exp.amount}</td>
+                <td>${exp.category}</td>
+                <td>${exp.date}</td>
+                <td>${exp.description}</td>
+                <td>
+                    <button class="delete-btn"
+                        onclick="deleteExpense('${exp.timestamp}')">
+                        Delete
+                    </button>
+                </td>
             `;
-            tbody.innerHTML += row;
+
+            tbody.appendChild(row);
         });
-    });
+    })
+    .catch(err => console.error("Error loading expenses:", err));
 }
 
+
+
+function deleteExpense(timestamp) {
+
+    fetch(BASE_URL + "/delete-expense/" + timestamp, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        alert(data.message);
+
+        loadExpenses();
+        getSummary();
+
+    })
+    .catch(err => console.error("Delete error:", err));
+}
+
+
+
+
+    
 function getSummary() {
     fetch(BASE_URL + "/summary")
     .then(res => res.json())

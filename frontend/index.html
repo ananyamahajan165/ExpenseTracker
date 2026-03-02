@@ -5,9 +5,10 @@
     <div class="card">
       <h2>Add Expense</h2>
       <form id="expenseForm">
-        <input type="text" id="title" placeholder="Expense Title" required />
+        <input type="text" id="category" placeholder="Category" required />
         <input type="number" id="amount" placeholder="Amount" required />
-        <button type="submit">Add Expense</button>
+        <input type="text" id="description" placeholder="Description" required />
+        <button type="button" onclick="addExpense()">Add Expense</button>
       </form>
     </div>
 
@@ -18,9 +19,21 @@
 
     <div class="card">
       <h2>All Expenses</h2>
-      <ul id="expenseList"></ul>
-    </div>
 
+      <table id="expenseTable">
+        <thead>
+          <tr>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+    </div>
   </div>
 
   <script src="script.js"></script>
