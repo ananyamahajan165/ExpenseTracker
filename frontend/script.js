@@ -25,12 +25,25 @@ function addExpense() {
 }
 
 function loadExpenses() {
+
+    const loading = document.getElementById("loadingMessage");
+    const empty = document.getElementById("emptyMessage");
+    const tbody = document.querySelector("#expenseTable tbody");
+
+    loading.style.display = "block";
+    empty.style.display = "none";
+    tbody.innerHTML = "";
+
     fetch(BASE_URL + "/expenses")
     .then(res => res.json())
     .then(data => {
 
-        const tbody = document.querySelector("#expenseTable tbody");
-        tbody.innerHTML = "";
+        loading.style.display = "none";
+
+        if (data.length === 0) {
+            empty.style.display = "block";
+            return;
+        }
 
         data.forEach(exp => {
 
@@ -52,9 +65,11 @@ function loadExpenses() {
             tbody.appendChild(row);
         });
     })
-    .catch(err => console.error("Error loading expenses:", err));
+    .catch(err => {
+        loading.style.display = "none";
+        console.error("Error loading expenses:", err);
+    });
 }
-
 
 
 function deleteExpense(timestamp) {
@@ -77,7 +92,7 @@ function deleteExpense(timestamp) {
 
 
 
-    
+
 function getSummary() {
     fetch(BASE_URL + "/summary")
     .then(res => res.json())
