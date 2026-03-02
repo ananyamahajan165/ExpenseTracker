@@ -1,48 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Expense Tracker</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
 <body>
+  <div class="container">
+    <h1>💰 Expense Tracker Dashboard</h1>
 
-<h1>Expense Tracker</h1>
+    <div class="card">
+      <h2>Add Expense</h2>
+      <form id="expenseForm">
+        <input type="text" id="title" placeholder="Expense Title" required />
+        <input type="number" id="amount" placeholder="Amount" required />
+        <button type="submit">Add Expense</button>
+      </form>
+    </div>
 
-<h2>Add Expense</h2>
-<input type="number" id="amount" placeholder="Amount">
-<input type="text" id="category" placeholder="Category">
-<input type="text" id="description" placeholder="Description">
-<button onclick="addExpense()">Add</button>
+    <div class="card">
+      <h2>Summary</h2>
+      <p>Total Expenses: ₹<span id="totalAmount">0</span></p>
+    </div>
 
-<h2>All Expenses</h2>
-<button onclick="loadExpenses()">Refresh</button>
+    <div class="card">
+      <h2>All Expenses</h2>
+      <ul id="expenseList"></ul>
+    </div>
 
-<table border="1" id="expenseTable">
-    <thead>
-        <tr>
-            <th>Amount</th>
-            <th>Category</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+  </div>
 
-<h2>Add Expense</h2>
-
-<input type="number" id="amount" placeholder="Amount">
-<input type="text" id="category" placeholder="Category">
-<input type="text" id="description" placeholder="Description">
-
-<button onclick="addExpense()">Add Expense</button>
-
-<hr>3
-
-<h2>Summary Chart</h2>
-<button onclick="getSummary()">Show Summary</button>
-<canvas id="expenseChart"></canvas>
-
-<script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
-</html>
