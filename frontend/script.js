@@ -49,6 +49,11 @@ function getSummary() {
     fetch(BASE_URL + "/summary")
     .then(res => res.json())
     .then(data => {
+
+        // Update total amount text
+        document.getElementById("totalAmount").innerText = data.total;
+
+        // Render chart
         renderChart(data);
     });
 }
