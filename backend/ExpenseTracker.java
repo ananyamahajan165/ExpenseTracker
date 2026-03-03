@@ -259,6 +259,8 @@ server.createContext("/login", exchange -> {
     return;
 }
 
+loggedInUser = username; 
+
         sendJson(exchange, 200,
     "{\"status\":\"success\",\"message\":\"Login successful\",\"username\":\""
     + username + "\"}");
@@ -284,6 +286,12 @@ server.createContext("/expenses", exchange -> {
         return;
     }
 
+    if (loggedInUser == null) {
+    sendJson(exchange, 401,
+        "{\"status\":\"error\",\"message\":\"Please login first\"}");
+    return;
+}
+
     try {
         StringBuilder json = new StringBuilder();
         json.append("[");
@@ -293,24 +301,29 @@ server.createContext("/expenses", exchange -> {
         try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
             String line;
 
-            while ((line = br.readLine()) != null) {
+while ((line = br.readLine()) != null) {
 
-                String[] parts = line.split("\\|");
+    String[] parts = line.split("\\|");
 
-                if (parts.length >= 6) {
+    if (parts.length >= 6) {
 
-                    if (!first) json.append(",");
-                    first = false;
+        // ✅ FILTER BY LOGGED IN USER
+        if (loggedInUser == null || !parts[0].equals(loggedInUser)) {
+            continue;
+        }
 
-                    json.append("{")
-                        .append("\"amount\":").append(parts[1]).append(",")
-                        .append("\"category\":\"").append(parts[2]).append("\",")
-                        .append("\"date\":\"").append(parts[3]).append("\",")
-                        .append("\"timestamp\":\"").append(parts[4]).append("\",")
-                        .append("\"description\":\"").append(parts[5]).append("\"")
-                        .append("}");
-                }
-            }
+        if (!first) json.append(",");
+        first = false;
+
+        json.append("{")
+            .append("\"amount\":").append(parts[1]).append(",")
+            .append("\"category\":\"").append(parts[2]).append("\",")
+            .append("\"date\":\"").append(parts[3]).append("\",")
+            .append("\"timestamp\":\"").append(parts[4]).append("\",")
+            .append("\"description\":\"").append(parts[5]).append("\"")
+            .append("}");
+    }
+}
         }
 
         json.append("]");
@@ -396,6 +409,12 @@ server.createContext("/add-expense", exchange -> {
         return;
     }
 
+    if (loggedInUser == null) {
+    sendJson(exchange, 401,
+        "{\"status\":\"error\",\"message\":\"Please login first\"}");
+    return;
+}
+
     try {
 
         String body = new String(exchange.getRequestBody().readAllBytes());
@@ -438,6 +457,25 @@ server.createContext("/add-expense", exchange -> {
             "{\"status\":\"error\",\"message\":\"Failed to add expense\"}");
     }
 });
+
+
+
+server.createContext("/logout", exchange -> {
+
+    enableCors(exchange);
+
+    if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+        sendJson(exchange, 405,
+            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        return;
+    }
+
+    loggedInUser = null;
+
+    sendJson(exchange, 200,
+        "{\"status\":\"success\",\"message\":\"Logged out successfully\"}");
+});
+
 
 
 server.setExecutor(null);
