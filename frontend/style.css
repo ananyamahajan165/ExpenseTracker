@@ -91,3 +91,13 @@ tr:hover {
   font-style: italic;
   color: #9ca3af;
 }
+
+select {
+  padding: 12px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  width: 25%;
+}

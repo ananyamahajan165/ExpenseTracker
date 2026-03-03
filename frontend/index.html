@@ -1,3 +1,8 @@
+<head>
+  <meta charset="UTF-8">
+  <title>Expense Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
   <div class="container">
     <h1>Smart Expense Analytics Dashboard</h1>
@@ -5,7 +10,15 @@
     <div class="card">
       <h2>Add Expense</h2>
       <form id="expenseForm">
-        <input type="text" id="category" placeholder="Category" required />
+        <select id="category" required>
+  <option value="">Select Category</option>
+  <option value="FOOD">Food</option>
+  <option value="TRAVEL">Travel</option>
+  <option value="RENT">Rent</option>
+  <option value="SHOPPING">Shopping</option>
+  <option value="UTILITIES">Utilities</option>
+  <option value="OTHER">Other</option>
+</select>
         <input type="number" id="amount" placeholder="Amount" required />
         <input type="text" id="description" placeholder="Description" required />
         <button type="button" onclick="addExpense()">Add Expense</button>

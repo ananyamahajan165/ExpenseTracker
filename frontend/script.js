@@ -5,21 +5,20 @@ function addExpense() {
     const category = document.getElementById("category").value;
     const description = document.getElementById("description").value;
 
+    const bodyData = amount + "|" + category + "|" + description;
+
     fetch("http://localhost:8080/add-expense", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "text/plain"
         },
-        body: JSON.stringify({
-            amount: amount,
-            category: category,
-            description: description
-        })
+        body: bodyData
     })
     .then(res => res.json())
     .then(data => {
         alert(data.message);
-        loadSummary(); // refresh summary automatically
+        loadExpenses();
+        getSummary();
     })
     .catch(err => console.error(err));
 }

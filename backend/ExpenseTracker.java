@@ -286,14 +286,35 @@ server.createContext("/add-expense", exchange -> {
     try {
 
         String body = new String(exchange.getRequestBody().readAllBytes());
+        System.out.println("RAW BODY: [" + body + "]");
+        System.out.println("Received body: " + body); // DEBUG
 
         String[] parts = body.split("\\|");
+
+        if (parts.length < 3) {
+            sendJson(exchange, 400,
+                "{\"status\":\"error\",\"message\":\"Invalid data\"}");
+            return;
+        }
 
         double amount = Double.parseDouble(parts[0]);
         String category = parts[1];
         String description = parts[2];
 
-        saveExpense(amount, category, description);
+        LocalDate date = LocalDate.now();
+        LocalDateTime timestamp = LocalDateTime.now();
+
+        String record =
+                "webuser|" +
+                amount + "|" +
+                category + "|" +
+                date + "|" +
+                timestamp + "|" +
+                description + "\n";
+
+        try (FileWriter fw = new FileWriter(EXPENSE_FILE, true)) {
+            fw.write(record);
+        }
 
         sendJson(exchange, 200,
             "{\"status\":\"success\",\"message\":\"Expense added successfully\"}");
