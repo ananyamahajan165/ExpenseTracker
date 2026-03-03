@@ -477,7 +477,6 @@ server.createContext("/logout", exchange -> {
 });
 
 
-
 server.setExecutor(null);
 server.start();
         System.out.println("🚀 Server started at http://localhost:8080");
