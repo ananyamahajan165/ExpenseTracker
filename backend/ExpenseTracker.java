@@ -161,6 +161,58 @@ server.createContext("/summary", exchange -> {
 });
 
 
+
+
+
+server.createContext("/register", exchange -> {
+
+    enableCors(exchange);
+
+    if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+        sendJson(exchange, 405,
+            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        return;
+    }
+
+    try {
+
+        String body = new String(exchange.getRequestBody().readAllBytes());
+        String[] parts = body.split("\\|");
+
+        if (parts.length < 2) {
+            sendJson(exchange, 400,
+                "{\"status\":\"error\",\"message\":\"Invalid data\"}");
+            return;
+        }
+
+        String username = parts[0].toLowerCase();
+        String password = parts[1];
+
+        if (userExists(username)) {
+            sendJson(exchange, 400,
+                "{\"status\":\"error\",\"message\":\"User already exists\"}");
+            return;
+        }
+
+        String hashed = hashPassword(password);
+
+        try (FileWriter fw = new FileWriter(USER_FILE, true)) {
+            fw.write(username + "|" + hashed + "\n");
+        }
+
+        sendJson(exchange, 200,
+            "{\"status\":\"success\",\"message\":\"Registration successful\"}");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        sendJson(exchange, 500,
+            "{\"status\":\"error\",\"message\":\"Registration failed\"}");
+    }
+});
+
+
+
+
 server.createContext("/expenses", exchange -> {
 
     enableCors(exchange);
