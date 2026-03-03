@@ -90,6 +90,36 @@ function deleteExpense(timestamp) {
 
 
 
+function loginUser() {
+
+    const username = document.getElementById("loginUsername").value;
+    const password = document.getElementById("loginPassword").value;
+
+    const bodyData = username + "|" + password;
+
+    fetch("http://localhost:8080/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "text/plain"
+        },
+        body: bodyData
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.status === "success") {
+            localStorage.setItem("username", data.username);
+            alert("Login successful");
+            showDashboard();
+        } else {
+            alert(data.message);
+        }
+
+    })
+    .catch(err => console.error(err));
+}
+
+
 
 
 function getSummary() {
