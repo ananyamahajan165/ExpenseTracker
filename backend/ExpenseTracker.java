@@ -254,13 +254,14 @@ server.createContext("/login", exchange -> {
         }
 
         if (!valid) {
-            sendJson(exchange, 401,
-                "{\"status\":\"error\",\"message\":\"Invalid credentials\"}");
-            return;
-        }
+    sendJson(exchange, 401,
+        "{\"status\":\"error\",\"message\":\"Invalid credentials\"}");
+    return;
+}
 
         sendJson(exchange, 200,
-            "{\"status\":\"success\",\"message\":\"Login successful\"}");
+    "{\"status\":\"success\",\"message\":\"Login successful\",\"username\":\""
+    + username + "\"}");
 
     } catch (Exception e) {
         e.printStackTrace();
