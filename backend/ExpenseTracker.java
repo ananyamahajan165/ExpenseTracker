@@ -213,6 +213,66 @@ server.createContext("/register", exchange -> {
 
 
 
+server.createContext("/login", exchange -> {
+
+    enableCors(exchange);
+
+    if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+        sendJson(exchange, 405,
+            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        return;
+    }
+
+    try {
+
+        String body = new String(exchange.getRequestBody().readAllBytes());
+        String[] parts = body.split("\\|");
+
+        if (parts.length < 2) {
+            sendJson(exchange, 400,
+                "{\"status\":\"error\",\"message\":\"Invalid data\"}");
+            return;
+        }
+
+        String username = parts[0].toLowerCase();
+        String password = parts[1];
+        String hashed = hashPassword(password);
+
+        boolean valid = false;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] data = line.split("\\|");
+                if (data.length == 2 &&
+                    data[0].equals(username) &&
+                    data[1].equals(hashed)) {
+                    valid = true;
+                    break;
+                }
+            }
+        }
+
+        if (!valid) {
+            sendJson(exchange, 401,
+                "{\"status\":\"error\",\"message\":\"Invalid credentials\"}");
+            return;
+        }
+
+        sendJson(exchange, 200,
+            "{\"status\":\"success\",\"message\":\"Login successful\"}");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        sendJson(exchange, 500,
+            "{\"status\":\"error\",\"message\":\"Login failed\"}");
+    }
+});
+
+
+
+
+
 server.createContext("/expenses", exchange -> {
 
     enableCors(exchange);
