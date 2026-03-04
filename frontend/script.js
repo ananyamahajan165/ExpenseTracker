@@ -108,17 +108,22 @@ function loginUser() {
     .then(data => {
 
         if (data.status === "success") {
+
             localStorage.setItem("username", data.username);
+
             alert("Login successful");
+
             showDashboard();
+
         } else {
+
             alert(data.message);
+
         }
 
     })
     .catch(err => console.error(err));
 }
-
 
 
 
