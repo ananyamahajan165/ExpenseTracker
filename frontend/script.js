@@ -71,6 +71,7 @@ function loadExpenses() {
 }
 
 
+
 function deleteExpense(timestamp) {
 
     fetch(BASE_URL + "/delete-expense/" + timestamp, {
@@ -90,6 +91,7 @@ function deleteExpense(timestamp) {
 
 
 
+// LOGIN FUNCTION
 function loginUser() {
 
     const username = document.getElementById("loginUsername").value;
@@ -116,14 +118,55 @@ function loginUser() {
             showDashboard();
 
         } else {
-
             alert(data.message);
-
         }
 
     })
     .catch(err => console.error(err));
 }
+
+
+// SHOW DASHBOARD AFTER LOGIN
+function showDashboard() {
+
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("dashboardSection").style.display = "block";
+
+    const user = localStorage.getItem("username");
+
+    document.getElementById("welcomeUser").innerText =
+        "Logged in as: " + user;
+
+    loadExpenses();
+    getSummary();
+}
+
+
+// LOGOUT FUNCTION
+function logoutUser() {
+
+    fetch("http://localhost:8080/logout", {
+        method: "POST"
+    });
+
+    localStorage.removeItem("username");
+
+    document.getElementById("dashboardSection").style.display = "none";
+    document.getElementById("loginSection").style.display = "block";
+}
+
+
+// AUTO LOGIN IF USER ALREADY LOGGED IN
+window.onload = function () {
+
+    const user = localStorage.getItem("username");
+
+    if (user) {
+        showDashboard();
+    }
+};
+
+
 
 
 
