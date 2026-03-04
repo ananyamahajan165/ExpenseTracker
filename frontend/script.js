@@ -91,7 +91,6 @@ function deleteExpense(timestamp) {
 
 
 
-// LOGIN FUNCTION
 function loginUser() {
 
     const username = document.getElementById("loginUsername").value;
@@ -118,7 +117,9 @@ function loginUser() {
             showDashboard();
 
         } else {
+
             alert(data.message);
+
         }
 
     })
