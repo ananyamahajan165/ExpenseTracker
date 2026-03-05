@@ -105,27 +105,20 @@ server.createContext("/set-budget", exchange -> {
     enableCors(exchange);
 
     if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
-        sendJson(exchange, 405,
-            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        sendJson(exchange,405,"{\"status\":\"error\"}");
         return;
     }
 
-    try {
+    String body = new String(exchange.getRequestBody().readAllBytes());
 
-        String body = new String(exchange.getRequestBody().readAllBytes());
+    try(FileWriter fw = new FileWriter(BUDGET_FILE)){
 
-        try (FileWriter fw = new FileWriter(BUDGET_FILE)) {
-            fw.write(body);
-        }
+        fw.write(body);
 
-        sendJson(exchange, 200,
-            "{\"status\":\"success\",\"message\":\"Budget updated successfully\"}");
-
-    } catch (Exception e) {
-
-        sendJson(exchange, 500,
-            "{\"status\":\"error\",\"message\":\"Failed to update budget\"}");
     }
+
+    sendJson(exchange,200,"{\"status\":\"success\"}");
+
 });
 
 

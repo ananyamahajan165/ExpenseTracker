@@ -163,11 +163,10 @@ function showDashboard() {
 
     const user = localStorage.getItem("username");
 
-    document.getElementById("welcomeUser").innerText =
-        "Logged in as: " + user;
+    document.getElementById("welcomeUser").innerText = "Logged in as: " + user;
 
-    loadExpenses();
-    getSummary();
+    loadExpenses();   // IMPORTANT
+    getSummary();     // IMPORTANT
 }
 
 
@@ -240,26 +239,26 @@ function renderChart(data) {
 }
 
 
-function setBudget() {
+function setBudget(){
 
-    const budget = document.getElementById("newBudget").value;
+    const budget = document.getElementById("budgetInput").value;
 
     fetch("http://localhost:8080/set-budget", {
-        method: "POST",
-        headers: {
-            "Content-Type": "text/plain"
+        method:"POST",
+        headers:{
+            "Content-Type":"text/plain"
         },
         body: budget
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(res=>res.json())
+    .then(data=>{
 
-        alert(data.message);
+        alert("Budget updated");
 
-        getSummary(); // refresh dashboard
+        getSummary();
 
-    })
-    .catch(err => console.error(err));
+    });
+
 }
 
 function showRegister(){

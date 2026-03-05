@@ -58,13 +58,24 @@ Already have an account?
     </div>
 
     <!-- Budget -->
-    <div class="card">
-      <h2>Budget Status</h2>
-      <p>Monthly Budget: ₹ <span id="budgetAmount">0</span></p>
-      <p>Remaining: ₹ <span id="remainingAmount">0</span></p>
-      <p id="budgetWarning"></p>
-    </div>
+<div class="card">
 
+<h2>Budget Status</h2>
+
+<input type="number" id="budgetInput" placeholder="Enter Monthly Budget">
+
+<button onclick="setBudget()">Set Budget</button>
+
+<p>Monthly Budget: ₹ <span id="budgetAmount">0</span></p>
+
+<p>Remaining: ₹ <span id="remainingAmount">0</span></p>
+
+<p id="budgetWarning"></p>
+
+</div>
+
+
+    
     <!-- Add Expense -->
     <div class="card">
       <h2>Add Expense</h2>

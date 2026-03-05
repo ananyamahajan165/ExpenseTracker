@@ -116,3 +116,31 @@ justify-content:space-between;
 align-items:center;
 margin-bottom:30px;
 }
+
+#expenseForm select,
+#expenseForm input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+#category {
+    width: 200px;
+}
+
+#amount {
+    width: 150px;
+}
+
+#description {
+    width: 250px;
+}
+
+#expenseForm button {
+    padding: 10px 18px;
+}
+
+#budgetInput{
+width:200px;
+margin-right:10px;
+}
