@@ -163,14 +163,33 @@ function logoutUser() {
 
 
 function getSummary() {
+
     fetch(BASE_URL + "/summary")
     .then(res => res.json())
     .then(data => {
 
-        // Update total amount text
-        document.getElementById("totalAmount").innerText = data.total;
+        const total = data.total;
+        const budget = data.budget;
 
-        // Render chart
+        document.getElementById("totalAmount").innerText = total;
+        document.getElementById("budgetAmount").innerText = budget;
+
+        const remaining = budget - total;
+        document.getElementById("remainingAmount").innerText = remaining;
+
+        const warning = document.getElementById("budgetWarning");
+
+        if (remaining < 0) {
+            warning.innerText = "⚠ Budget Exceeded!";
+            warning.style.color = "red";
+        } else if (remaining < budget * 0.1) {
+            warning.innerText = "⚠ Only 10% budget left!";
+            warning.style.color = "orange";
+        } else {
+            warning.innerText = "Within Budget";
+            warning.style.color = "green";
+        }
+
         renderChart(data);
     });
 }
