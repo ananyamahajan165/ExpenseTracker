@@ -102,65 +102,89 @@ server.createContext("/", exchange -> {
 
 server.createContext("/summary", exchange -> {
 
-    enableCors(exchange);   // ✅ FIRST LINE
+    enableCors(exchange);
 
     if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
-        sendJson(exchange, 405, "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        sendJson(exchange, 405,
+            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
         return;
     }
-    try {   
+
+    try {
+
         Map<String, Double> categoryTotals = new HashMap<>();
         double total = 0;
 
+        // -------- READ EXPENSES --------
         try (BufferedReader br = new BufferedReader(new FileReader(EXPENSE_FILE))) {
-    String line;
 
-    while ((line = br.readLine()) != null) {
+            String line;
 
-        String[] parts = line.split("\\|");
+            while ((line = br.readLine()) != null) {
 
-        if (parts.length < 4) continue;
+                String[] parts = line.split("\\|");
 
-        try {
-            double amount = Double.parseDouble(parts[1]);
-            String category = parts[2];
+                if (parts.length < 4) continue;
 
-            total += amount;
+                try {
 
-            categoryTotals.put(
-                category,
-                categoryTotals.getOrDefault(category, 0.0) + amount
-            );
+                    double amount = Double.parseDouble(parts[1]);
+                    String category = parts[2];
 
-        } catch (NumberFormatException e) {
-            continue; // skip corrupted lines
+                    total += amount;
+
+                    categoryTotals.put(
+                        category,
+                        categoryTotals.getOrDefault(category, 0.0) + amount
+                    );
+
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+            }
         }
-    }   
+
+        // -------- READ BUDGET --------
+        double budget = 0;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(BUDGET_FILE))) {
+            String line = br.readLine();
+            if (line != null) {
+                budget = Double.parseDouble(line);
+            }
+        } catch (Exception e) {
+            budget = 0;
         }
 
+        // -------- BUILD JSON RESPONSE --------
         StringBuilder json = new StringBuilder();
+
         json.append("{");
         json.append("\"total\":").append(total).append(",");
+        json.append("\"budget\":").append(budget).append(",");
         json.append("\"byCategory\":{");
 
         boolean first = true;
+
         for (String cat : categoryTotals.keySet()) {
+
             if (!first) json.append(",");
             first = false;
+
             json.append("\"").append(cat).append("\":")
                 .append(categoryTotals.get(cat));
         }
 
         json.append("}}");
+
         sendJson(exchange, 200, json.toString());
 
     } catch (Exception e) {
         e.printStackTrace();
-        sendJson(exchange, 500, "{\"status\":\"error\",\"message\":\"Internal Server Error\"}");
+        sendJson(exchange, 500,
+            "{\"status\":\"error\",\"message\":\"Internal Server Error\"}");
     }
 });
-
-
 
 
 
