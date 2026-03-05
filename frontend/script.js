@@ -158,15 +158,6 @@ function logoutUser() {
 
 
 // AUTO LOGIN IF USER ALREADY LOGGED IN
-window.onload = function () {
-
-    const user = localStorage.getItem("username");
-
-    if (user) {
-        showDashboard();
-    }
-};
-
 
 
 
@@ -200,3 +191,12 @@ function renderChart(data) {
         }
     });
 }
+
+window.onload = function () {
+
+    const user = localStorage.getItem("username");
+
+    if (user) {
+        showDashboard();
+    }
+};
