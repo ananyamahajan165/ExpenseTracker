@@ -211,6 +211,31 @@ function renderChart(data) {
     });
 }
 
+
+function setBudget() {
+
+    const budget = document.getElementById("newBudget").value;
+
+    fetch("http://localhost:8080/set-budget", {
+        method: "POST",
+        headers: {
+            "Content-Type": "text/plain"
+        },
+        body: budget
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        alert(data.message);
+
+        getSummary(); // refresh dashboard
+
+    })
+    .catch(err => console.error(err));
+}
+
+
+
 window.onload = function () {
 
     const user = localStorage.getItem("username");
