@@ -127,6 +127,34 @@ function loginUser() {
 }
 
 
+
+function registerUser() {
+
+    const username = document.getElementById("registerUsername").value;
+    const password = document.getElementById("registerPassword").value;
+
+    const bodyData = username + "|" + password;
+
+    fetch("http://localhost:8080/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "text/plain"
+        },
+        body: bodyData
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        alert(data.message);
+
+    })
+    .catch(err => console.error(err));
+}
+
+
+
+
+
 // SHOW DASHBOARD AFTER LOGIN
 function showDashboard() {
 
@@ -234,7 +262,13 @@ function setBudget() {
     .catch(err => console.error(err));
 }
 
+function showRegister(){
+document.getElementById("registerForm").style.display="block";
+}
 
+function showLogin(){
+document.getElementById("registerForm").style.display="none";
+}
 
 window.onload = function () {
 

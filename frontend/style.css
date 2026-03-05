@@ -1,103 +1,118 @@
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #1f2937, #111827);
-  color: #f9fafb;
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
 }
 
-.container {
-  max-width: 900px;
-  margin: 50px auto;
-  padding: 20px;
+.container{
+    width:900px;
+    margin:auto;
+    padding:40px;
 }
 
-h1 {
-  text-align: center;
-  font-size: 32px;
-  margin-bottom: 40px;
-  letter-spacing: 1px;
+.card{
+    background:#1e293b;
+    padding:20px;
+    margin:20px 0;
+    border-radius:10px;
 }
 
-.card {
-  background: #1f2937;
-  padding: 25px;
-  margin-bottom: 25px;
-  border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-  transition: 0.3s;
+input, select {
+    padding:10px;
+    margin:8px 0;
+    width:300px;
+    border-radius:6px;
+    border:1px solid #ccc;
 }
 
-.card:hover {
-  transform: translateY(-5px);
+button{
+    padding:8px 16px;
+    background:#3b82f6;
+    border:none;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
 }
 
-input {
-  padding: 12px;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: none;
-  outline: none;
-  width: 25%;
+button:hover{
+    background:#2563eb;
+    transform:scale(1.05);
 }
 
-button {
-  padding: 12px 20px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.3s;
+table{
+    width:100%;
+    border-collapse:collapse;
 }
 
-button:hover {
-  background: #2563eb;
-  transform: scale(1.05);
+th,td{
+    padding:10px;
+    text-align:left;
 }
 
-.delete-btn {
-  background: #ef4444;
+span{
+    color:#60a5fa;
+    cursor:pointer;
 }
 
-.delete-btn:hover {
-  background: #dc2626;
+.login-box{
+width:350px;
+margin:120px auto;
+background:#1e293b;
+padding:30px;
+border-radius:10px;
+color:white;
+text-align:center;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
+.login-box input{
+width:100%;
+padding:10px;
+margin:10px 0;
+border:none;
+border-radius:6px;
 }
 
-th {
-  background: #374151;
-  padding: 12px;
-  text-align: left;
+.login-box button{
+width:100%;
+padding:10px;
+background:#3b82f6;
+border:none;
+color:white;
+border-radius:6px;
+cursor:pointer;
 }
 
-td {
-  padding: 12px;
-  border-bottom: 1px solid #374151;
+.login-box span{
+color:#60a5fa;
+cursor:pointer;
 }
 
-tr:hover {
-  background: #2d3748;
+.card{
+    background:#1e293b;
+    padding:20px;
+    margin:20px 0;
+    border-radius:10px;
 }
 
-#loadingMessage,
-#emptyMessage {
-  margin-top: 10px;
-  font-style: italic;
-  color: #9ca3af;
+.card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
 }
 
-select {
-  padding: 12px;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: none;
-  outline: none;
-  width: 25%;
+input:focus, select:focus{
+    outline:none;
+    border:2px solid #3b82f6;
+}
+
+.title{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
 }

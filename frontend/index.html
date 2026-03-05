@@ -1,109 +1,127 @@
+<!DOCTYPE html>
+<html>
+
 <head>
-  <meta charset="UTF-8">
-  <title>Expense Tracker</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Expense Tracker</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <!-- LOGIN SECTION -->
-  <div id="loginSection" class="card">
-    <h2>Login</h2>
+<!-- LOGIN SECTION -->
+<div id="loginSection" class="login-box">
 
-    <input type="text" id="loginUsername" placeholder="Username" />
-    <input type="password" id="loginPassword" placeholder="Password" />
+<h2>Login</h2>
 
-    <button onclick="loginUser()">Login</button>
-  </div>
+<input type="text" id="loginUsername" placeholder="Username">
+<input type="password" id="loginPassword" placeholder="Password">
+
+<button onclick="loginUser()">Login</button>
+
+<p>
+Don't have an account?
+<span onclick="showRegister()">Register</span>
+</p>
 
 
-  <!-- DASHBOARD SECTION -->
-  <div id="dashboardSection" style="display:none;">
+<!-- REGISTER FORM -->
+<div id="registerForm" style="display:none;">
 
-    <div class="container">
+<h3>Create Account</h3>
 
+<input type="text" id="registerUsername" placeholder="Username">
+<input type="password" id="registerPassword" placeholder="Password">
+
+<button onclick="registerUser()">Register</button>
+
+<p>
+Already have an account?
+<span onclick="showLogin()">Login</span>
+</p>
+
+</div>
+
+</div>
+
+
+<!-- DASHBOARD -->
+<div id="dashboardSection" style="display:none;">
+  <div class="container">
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
       <h1>Smart Expense Analytics Dashboard</h1>
-
-      <div style="display:flex; gap:15px; align-items:center;">
-        <h3 id="welcomeUser"></h3>
+      <div>
+        <span id="welcomeUser"></span>
         <button onclick="logoutUser()">Logout</button>
       </div>
+    </div>
 
+    <!-- Budget -->
+    <div class="card">
+      <h2>Budget Status</h2>
+      <p>Monthly Budget: ₹ <span id="budgetAmount">0</span></p>
+      <p>Remaining: ₹ <span id="remainingAmount">0</span></p>
+      <p id="budgetWarning"></p>
+    </div>
 
-      <!-- BUDGET STATUS -->
-      <div class="card">
-        <h2>Budget Status</h2>
+    <!-- Add Expense -->
+    <div class="card">
+      <h2>Add Expense</h2>
 
-        <p>Monthly Budget: ₹ <span id="budgetAmount">0</span></p>
+      <form id="expenseForm">
 
-<input type="number" id="newBudget" placeholder="Set new budget">
+        <select id="category">
+          <option value="">Select Category</option>
+          <option value="FOOD">Food</option>
+          <option value="TRAVEL">Travel</option>
+          <option value="RENT">Rent</option>
+          <option value="SHOPPING">Shopping</option>
+          <option value="UTILITIES">Utilities</option>
+          <option value="OTHER">Other</option>
+        </select>
 
-<button onclick="setBudget()">Update Budget</button>
+        <input type="number" id="amount" placeholder="Amount">
 
-<p>Remaining: ₹ <span id="remainingAmount">0</span></p>
+        <input type="text" id="description" placeholder="Description">
 
-<p id="budgetWarning"></p>
-      </div>
+        <button type="button" onclick="addExpense()">Add Expense</button>
 
+      </form>
+    </div>
 
-      <!-- ADD EXPENSE -->
-      <div class="card">
-        <h2>Add Expense</h2>
+    <!-- Total -->
+    <div class="card">
+      <h2>Total Spending</h2>
+      <h1>₹ <span id="totalAmount">0</span></h1>
+    </div>
 
-        <form id="expenseForm">
+    <!-- Expenses Table -->
+    <div class="card">
+      <h2>All Expenses</h2>
 
-          <select id="category" required>
-            <option value="">Select Category</option>
-            <option value="FOOD">Food</option>
-            <option value="TRAVEL">Travel</option>
-            <option value="RENT">Rent</option>
-            <option value="SHOPPING">Shopping</option>
-            <option value="UTILITIES">Utilities</option>
-            <option value="OTHER">Other</option>
-          </select>
+      <table id="expenseTable">
+        <thead>
+          <tr>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
 
-          <input type="number" id="amount" placeholder="Amount" required />
-          <input type="text" id="description" placeholder="Description" required />
-
-          <button type="button" onclick="addExpense()">Add Expense</button>
-
-        </form>
-      </div>
-
-
-      <!-- TOTAL SPENDING -->
-      <div class="card">
-        <h2>Total Spending</h2>
-        <h1 style="font-size:28px;">&#8377; <span id="totalAmount">0</span></h1>
-      </div>
-
-
-      <!-- EXPENSE TABLE -->
-      <div class="card">
-        <h2>All Expenses</h2>
-
-        <p id="loadingMessage" style="display:none;">Loading expenses...</p>
-        <p id="emptyMessage" style="display:none;">No expenses added yet.</p>
-
-        <table id="expenseTable">
-          <thead>
-            <tr>
-              <th>Amount</th>
-              <th>Category</th>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-
-      </div>
+        <tbody></tbody>
+      </table>
 
     </div>
 
   </div>
+</div>
+<div class="header"></div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 
 </body>
+
+</html>
