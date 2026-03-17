@@ -22,7 +22,7 @@ A console-based **Expense Tracker application** built using **Core Java**, desig
 - Category-wise monthly report
 - Search expenses by keyword
 - Sort expenses by amount or date
-
+  
 ### 📊 Budgeting
 - Set monthly budget
 - Budget usage alerts (warnings)
