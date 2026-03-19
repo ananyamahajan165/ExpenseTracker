@@ -31,6 +31,29 @@ public class FileService {
 
 
 
+    public static void saveUser(String filePath, String username, String password) throws IOException {
+    FileWriter fw = new FileWriter(filePath, true);
+    fw.write(username + "," + password + "\n");
+    fw.close();
+}
+
+
+
+public static boolean validateUser(String filePath, String username, String password) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(filePath));
+    String line;
+
+    while ((line = br.readLine()) != null) {
+        String[] parts = line.split(",");
+        if (parts[0].equals(username) && parts[1].equals(password)) {
+            br.close();
+            return true;
+        }
+    }
+
+    br.close();
+    return false;
+}
 
     
     public static java.util.List<String> getExpensesByUser(String filePath, String username) throws IOException {

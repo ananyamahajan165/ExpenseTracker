@@ -277,3 +277,35 @@ window.onload = function () {
         showDashboard();
     }
 };
+
+
+function signup() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  fetch(BASE_URL + "/signup", {
+    method: "POST",
+    body: JSON.stringify({ username, password })
+  })
+  .then(res => res.text())
+  .then(data => alert(data));
+}
+
+function login() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  fetch(BASE_URL + "/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password })
+  })
+  .then(res => res.text())
+  .then(data => {
+    if(data === "success") {
+      localStorage.setItem("user", username);
+      alert("Login successful");
+    } else {
+      alert("Invalid login");
+    }
+  });
+}
