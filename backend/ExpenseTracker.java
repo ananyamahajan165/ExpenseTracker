@@ -61,7 +61,7 @@ static void startServer() {
 
     
     try {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(9080), 0);
 
         // -------- HEALTH CHECK --------
 
@@ -527,7 +527,7 @@ server.createContext("/logout", exchange -> {
 
 server.setExecutor(null);
 server.start();
-        System.out.println("🚀 Server started at http://localhost:8080");
+        System.out.println("🚀 Server started at http://localhost:9080");
 
     } catch (Exception e) {
         e.printStackTrace();
