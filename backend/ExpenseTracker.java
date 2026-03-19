@@ -105,7 +105,7 @@ server.createContext("/set-budget", exchange -> {
     enableCors(exchange);
 
     if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
-        sendJson(exchange,405,"{\"status\":\"error\"}");
+        sendJson(exchange, 200, "{\"status\":\"success\"}");
         return;
     }
 
