@@ -11,40 +11,35 @@
 
 <!-- LOGIN SECTION -->
 <div id="loginSection" class="login-box">
-  <div class="card">
-<h2>Expense Breakdown</h2>
-<canvas id="expenseChart"></canvas>
-</div>
 
-<h2>Login</h2>
+  <h2>Login</h2>
 
-<input type="text" id="loginUsername" placeholder="Username">
-<input type="password" id="loginPassword" placeholder="Password">
+  <input type="text" id="loginUsername" placeholder="Username">
+  <input type="password" id="loginPassword" placeholder="Password">
 
-<button onclick="loginUser()">Login</button>
+  <button onclick="loginUser()">Login</button>
 
-<p>
-Don't have an account?
-<span onclick="showRegister()">Register</span>
-</p>
+  <p>
+    Don't have an account?
+    <span onclick="showRegister()">Register</span>
+  </p>
 
+  <!-- REGISTER FORM -->
+  <div id="registerForm" style="display:none;">
 
-<!-- REGISTER FORM -->
-<div id="registerForm" style="display:none;">
+    <h3>Create Account</h3>
 
-<h3>Create Account</h3>
+    <input type="text" id="registerUsername" placeholder="Username">
+    <input type="password" id="registerPassword" placeholder="Password">
 
-<input type="text" id="registerUsername" placeholder="Username">
-<input type="password" id="registerPassword" placeholder="Password">
+    <button onclick="registerUser()">Register</button>
 
-<button onclick="registerUser()">Register</button>
+    <p>
+      Already have an account?
+      <span onclick="showLogin()">Login</span>
+    </p>
 
-<p>
-Already have an account?
-<span onclick="showLogin()">Login</span>
-</p>
-
-</div>
+  </div>
 
 </div>
 
@@ -53,6 +48,7 @@ Already have an account?
 <div id="dashboardSection" style="display:none;">
   <div class="container">
 
+    <!-- Header -->
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h1>Smart Expense Analytics Dashboard</h1>
       <div>
@@ -62,36 +58,22 @@ Already have an account?
     </div>
 
     <!-- Budget -->
-<div class="card">
+    <div class="card">
 
-<h2>Budget Status</h2>
+      <h2>Budget Status</h2>
 
-<input type="number" id="budgetInput" placeholder="Enter Monthly Budget">
+      <input type="number" id="budgetInput" placeholder="Enter Monthly Budget">
 
-<button onclick="setBudget()">Set Budget</button>
+      <button onclick="setBudget()">Set Budget</button>
 
-<p>Monthly Budget: ₹ <span id="budgetAmount">0</span></p>
+      <p>Monthly Budget: ₹ <span id="budgetAmount">0</span></p>
 
-<p>Remaining: ₹ <span id="remainingAmount">0</span></p>
+      <p>Remaining: ₹ <span id="remainingAmount">0</span></p>
 
-<p id="budgetWarning"></p>
+      <p id="budgetWarning"></p>
 
-</div>
+    </div>
 
-
-
-<div id="authSection">
-  <h2>Login / Signup</h2>
-
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
-
-  <button onclick="signup()">Signup</button>
-  <button onclick="login()">Login</button>
-</div>
-
-
-    
     <!-- Add Expense -->
     <div class="card">
       <h2>Add Expense</h2>
@@ -127,7 +109,7 @@ Already have an account?
     <div class="card">
       <h2>All Expenses</h2>
 
-      <table id="expenseTable">
+      <table border="1">
         <thead>
           <tr>
             <th>Amount</th>
@@ -138,15 +120,23 @@ Already have an account?
           </tr>
         </thead>
 
-        <tbody></tbody>
+        <!-- ✅ IMPORTANT CHANGE HERE -->
+        <tbody id="expenseTable"></tbody>
+
       </table>
 
     </div>
 
+    <!-- Chart -->
+    <div class="card">
+      <h2>Expense Breakdown</h2>
+      <canvas id="expenseChart"></canvas>
+    </div>
+
   </div>
 </div>
-<div class="header"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="script.js"></script>
 
 </body>
