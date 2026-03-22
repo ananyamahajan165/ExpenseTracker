@@ -1,27 +1,30 @@
 const BASE_URL = "http://localhost:8080";
+
+// ================= ADD EXPENSE =================
 function addExpense() {
 
     const amount = document.getElementById("amount").value;
     const category = document.getElementById("category").value;
     const description = document.getElementById("description").value;
 
-    const bodyData = amount + "|" + category + "|" + description;
+    const bodyData = amount + "," + category + "," + description;
 
-    fetch("http://localhost:8080/add-expense", {
+    fetch(BASE_URL + "/addExpense", {
         method: "POST",
         headers: {
             "Content-Type": "text/plain"
         },
         body: bodyData
     })
-    .then(res => res.json())
+    .then(res => res.text())
     .then(data => {
-        alert(data.message);
+        alert(data);
 
+        // clear inputs
         document.getElementById("amount").value = "";
         document.getElementById("category").value = "";
         document.getElementById("description").value = "";
-        
+
         loadExpenses();
         getSummary();
     })
@@ -29,9 +32,10 @@ function addExpense() {
 }
 
 
-
+// ================= LOAD EXPENSES =================
 function loadExpenses() {
-    fetch("http://localhost:8080/getExpenses")
+
+    fetch(BASE_URL + "/getExpenses")
     .then(res => res.text())
     .then(data => {
 
@@ -47,6 +51,7 @@ function loadExpenses() {
 
             const amount = parseInt(parts[0]);
             const category = parts[1];
+            const description = parts[2] || "-";
 
             total += amount;
 
@@ -54,7 +59,7 @@ function loadExpenses() {
                         <td>${amount}</td>
                         <td>${category}</td>
                         <td>-</td>
-                        <td>-</td>
+                        <td>${description}</td>
                         <td><button onclick="deleteExpense(${i})">Delete</button></td>
                      </tr>`;
         }
@@ -65,26 +70,24 @@ function loadExpenses() {
 }
 
 
+// ================= DELETE EXPENSE =================
+function deleteExpense(index) {
 
-function deleteExpense(timestamp) {
-
-    fetch(BASE_URL + "/delete-expense/" + timestamp, {
-        method: "DELETE"
+    fetch(BASE_URL + "/deleteExpense", {
+        method: "POST",
+        body: index.toString()
     })
-    .then(res => res.json())
+    .then(res => res.text())
     .then(data => {
-
-        alert(data.message);
-
+        alert(data);
         loadExpenses();
         getSummary();
-
     })
     .catch(err => console.error("Delete error:", err));
 }
 
 
-
+// ================= LOGIN =================
 function loginUser() {
 
     const username = document.getElementById("loginUsername").value;
@@ -92,36 +95,32 @@ function loginUser() {
 
     const bodyData = username + "|" + password;
 
-    fetch("http://localhost:8080/login", {
+    fetch(BASE_URL + "/login", {
         method: "POST",
         headers: {
             "Content-Type": "text/plain"
         },
         body: bodyData
     })
-    .then(res => res.json())
+    .then(res => res.text())
     .then(data => {
 
-        if (data.status === "success") {
+        if (data === "SUCCESS") {
 
-            localStorage.setItem("username", data.username);
+            localStorage.setItem("username", username);
 
             alert("Login successful");
-
             showDashboard();
 
         } else {
-
-            alert(data.message);
-
+            alert("Invalid credentials");
         }
-
     })
     .catch(err => console.error(err));
 }
 
 
-
+// ================= REGISTER =================
 function registerUser() {
 
     const username = document.getElementById("registerUsername").value;
@@ -129,27 +128,22 @@ function registerUser() {
 
     const bodyData = username + "|" + password;
 
-    fetch("http://localhost:8080/register", {
+    fetch(BASE_URL + "/register", {
         method: "POST",
         headers: {
             "Content-Type": "text/plain"
         },
         body: bodyData
     })
-    .then(res => res.json())
+    .then(res => res.text())
     .then(data => {
-
-        alert(data.message);
-
+        alert(data);
     })
     .catch(err => console.error(err));
 }
 
 
-
-
-
-// SHOW DASHBOARD AFTER LOGIN
+// ================= SHOW DASHBOARD =================
 function showDashboard() {
 
     document.getElementById("loginSection").style.display = "none";
@@ -159,15 +153,15 @@ function showDashboard() {
 
     document.getElementById("welcomeUser").innerText = "Logged in as: " + user;
 
-    loadExpenses();   // IMPORTANT
-    getSummary();     // IMPORTANT
+    loadExpenses();
+    getSummary();
 }
 
 
-// LOGOUT FUNCTION
+// ================= LOGOUT =================
 function logoutUser() {
 
-    fetch("http://localhost:8080/logout", {
+    fetch(BASE_URL + "/logout", {
         method: "POST"
     });
 
@@ -178,11 +172,7 @@ function logoutUser() {
 }
 
 
-// AUTO LOGIN IF USER ALREADY LOGGED IN
-
-
-
-
+// ================= SUMMARY =================
 function getSummary() {
 
     fetch(BASE_URL + "/summary")
@@ -215,7 +205,10 @@ function getSummary() {
     });
 }
 
+
+// ================= CHART =================
 function renderChart(data) {
+
     const ctx = document.getElementById("expenseChart").getContext("2d");
 
     const labels = Object.keys(data.byCategory);
@@ -233,36 +226,37 @@ function renderChart(data) {
 }
 
 
-function setBudget(){
+// ================= SET BUDGET =================
+function setBudget() {
 
     const budget = document.getElementById("budgetInput").value;
 
-    fetch("http://localhost:8080/set-budget", {
-        method:"POST",
-        headers:{
-            "Content-Type":"text/plain"
+    fetch(BASE_URL + "/set-budget", {
+        method: "POST",
+        headers: {
+            "Content-Type": "text/plain"
         },
         body: budget
     })
-    .then(res=>res.json())
-    .then(data=>{
-
+    .then(res => res.text())
+    .then(() => {
         alert("Budget updated");
-
         getSummary();
-
     });
-
 }
 
+
+// ================= TOGGLE LOGIN/REGISTER =================
 function showRegister(){
-document.getElementById("registerForm").style.display="block";
+    document.getElementById("registerForm").style.display = "block";
 }
 
 function showLogin(){
-document.getElementById("registerForm").style.display="none";
+    document.getElementById("registerForm").style.display = "none";
 }
 
+
+// ================= AUTO LOGIN =================
 window.onload = function () {
 
     const user = localStorage.getItem("username");
@@ -271,37 +265,3 @@ window.onload = function () {
         showDashboard();
     }
 };
-
-
-function signup() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  fetch(BASE_URL + "/signup", {
-    method: "POST",
-    body: JSON.stringify({ username, password })
-  })
-  .then(res => res.text())
-  .then(data => alert(data));
-}
-
-function login() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  fetch(BASE_URL + "/login", {
-    method: "POST",
-    body: JSON.stringify({ username, password })
-  })
-  .then(res => res.text())
-  .then(data => {
-    if(data === "success") {
-      localStorage.setItem("user", username);
-      alert("Login successful");
-    } else {
-      alert("Invalid login");
-    }
-  });
-}
-
-loadExpenses();
