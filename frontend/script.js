@@ -17,56 +17,50 @@ function addExpense() {
     .then(res => res.json())
     .then(data => {
         alert(data.message);
+
+        document.getElementById("amount").value = "";
+        document.getElementById("category").value = "";
+        document.getElementById("description").value = "";
+        
         loadExpenses();
         getSummary();
     })
     .catch(err => console.error(err));
 }
 
+
+
 function loadExpenses() {
-
-    const loading = document.getElementById("loadingMessage");
-    const empty = document.getElementById("emptyMessage");
-    const tbody = document.querySelector("#expenseTable tbody");
-
-    loading.style.display = "block";
-    empty.style.display = "none";
-    tbody.innerHTML = "";
-
-    fetch(BASE_URL + "/expenses")
-    .then(res => res.json())
+    fetch("http://localhost:8080/getExpenses")
+    .then(res => res.text())
     .then(data => {
 
-        loading.style.display = "none";
+        const rows = data.trim().split("\n");
+        let html = "";
+        let total = 0;
 
-        if (data.length === 0) {
-            empty.style.display = "block";
-            return;
+        for (let i = 0; i < rows.length; i++) {
+
+            if (rows[i].trim() === "") continue;
+
+            const parts = rows[i].split(",");
+
+            const amount = parseInt(parts[0]);
+            const category = parts[1];
+
+            total += amount;
+
+            html += `<tr>
+                        <td>${amount}</td>
+                        <td>${category}</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td><button onclick="deleteExpense(${i})">Delete</button></td>
+                     </tr>`;
         }
 
-        data.forEach(exp => {
-
-            const row = document.createElement("tr");
-
-            row.innerHTML = `
-                <td>₹${exp.amount}</td>
-                <td>${exp.category}</td>
-                <td>${exp.date}</td>
-                <td>${exp.description}</td>
-                <td>
-                    <button class="delete-btn"
-                        onclick="deleteExpense('${exp.timestamp}')">
-                        Delete
-                    </button>
-                </td>
-            `;
-
-            tbody.appendChild(row);
-        });
-    })
-    .catch(err => {
-        loading.style.display = "none";
-        console.error("Error loading expenses:", err);
+        document.getElementById("expenseTable").innerHTML = html;
+        document.getElementById("totalAmount").innerText = total;
     });
 }
 
@@ -309,3 +303,5 @@ function login() {
     }
   });
 }
+
+loadExpenses();
