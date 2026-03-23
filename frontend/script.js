@@ -44,7 +44,23 @@ function loadExpenses() {
     .then(res => res.text())
     .then(data => {
 
-        const rows = data.trim().split("\n");
+        let rows = data.trim().split("\n");
+
+let expenseList = [];
+
+for (let i = 0; i < rows.length; i++) {
+
+    if (rows[i].trim() === "") continue;
+
+    const parts = rows[i].split(",");
+
+    expenseList.push({
+        amount: parseInt(parts[0]),
+        category: parts[1],
+        description: parts[2] || "",
+        index: i
+    });
+}
         const selectedCategory = document.getElementById("filterCategory")?.value || "ALL";
         const searchText = document.getElementById("searchText")?.value.toLowerCase() || "";
 

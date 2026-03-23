@@ -112,6 +112,13 @@
 <div style="margin-bottom:10px;">
 
   <select id="filterCategory" onchange="loadExpenses()">
+    <select id="sortOption" onchange="loadExpenses()">
+  <option value="NONE">Sort</option>
+  <option value="HIGH">Amount High → Low</option>
+  <option value="LOW">Amount Low → High</option>
+  <option value="NEW">Newest First</option>
+  <option value="OLD">Oldest First</option>
+</select>
     <option value="ALL">All Categories</option>
     <option value="FOOD">Food</option>
     <option value="TRAVEL">Travel</option>
