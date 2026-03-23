@@ -72,7 +72,10 @@ function loadExpenses() {
                         <td>${category}</td>
                         <td>-</td>
                         <td>${parts[2] || "-"}</td>
-                        <td><button onclick="deleteExpense(${i})">Delete</button></td>
+                        <td>
+                        <button onclick="editExpense(${i}, '${amount}', '${category}', '${parts[2] || ""}')">Edit</button>
+                        <button onclick="deleteExpense(${i})">Delete</button>
+                        </td>
                      </tr>`;
         }
 
@@ -88,6 +91,16 @@ function loadExpenses() {
 // ================= DELETE =================
 function deleteExpense(index) {
 
+    let editIndex = -1;
+
+function editExpense(index, amount, category, description) {
+
+    document.getElementById("amount").value = amount;
+    document.getElementById("category").value = category;
+    document.getElementById("description").value = description;
+
+    editIndex = index;
+}
     fetch(BASE_URL + "/deleteExpense", {
         method: "POST",
         body: index.toString()
