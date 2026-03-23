@@ -7,7 +7,10 @@ function addExpense() {
     const category = document.getElementById("category").value;
     const description = document.getElementById("description").value;
 
-    const bodyData = amount + "," + category + "," + description;
+    const bodyData = editIndex === -1
+        ? amount + "," + category + "," + description
+        : editIndex + "," + amount + "," + category + "," + description;
+
 
     const url = editIndex === -1 ? "/addExpense" : "/updateExpense";
 
@@ -26,10 +29,11 @@ function addExpense() {
         document.getElementById("category").value = "";
         document.getElementById("description").value = "";
 
+        editIndex = -1; 
+
         loadExpenses();
         getSummary();
-    })
-    .catch(err => console.error(err));
+    });
 }
 
 
