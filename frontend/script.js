@@ -40,34 +40,42 @@ function loadExpenses() {
     .then(data => {
 
         const rows = data.trim().split("\n");
+        const selectedCategory = document.getElementById("filterCategory")?.value || "ALL";
+        const searchText = document.getElementById("searchText")?.value.toLowerCase() || "";
         let html = "";
         let total = 0;
 
         for (let i = 0; i < rows.length; i++) {
 
-            if (rows[i].trim() === "") continue;
+    if (rows[i].trim() === "") continue;
 
-            const parts = rows[i].split(",");
+    const parts = rows[i].split(",");
 
-            const amount = parseInt(parts[0]);
-            const category = parts[1];
-            const description = parts[2] || "-";
+    const amount = parseInt(parts[0]);
+    const category = parts[1];
+    const description = (parts[2] || "").toLowerCase();
 
-            total += amount;
+    // 🔥 CATEGORY FILTER
+    if (selectedCategory !== "ALL" && category !== selectedCategory) {
+        continue;
+    }
 
-            html += `<tr>
-                        <td>${amount}</td>
-                        <td>${category}</td>
-                        <td>-</td>
-                        <td>${description}</td>
-                        <td><button onclick="deleteExpense(${i})">Delete</button></td>
-                     </tr>`;
-        }
+    // 🔥 SEARCH FILTER
+    if (!description.includes(searchText)) {
+        continue;
+    }
 
-        document.getElementById("expenseTable").innerHTML = html;
-        document.getElementById("totalAmount").innerText = total;
-    });
+    total += amount;
+
+    html += `<tr>
+                <td>${amount}</td>
+                <td>${category}</td>
+                <td>-</td>
+                <td>${parts[2] || "-"}</td>
+                <td><button onclick="deleteExpense(${i})">Delete</button></td>
+             </tr>`;
 }
+    };
 
 
 // ================= DELETE EXPENSE =================
