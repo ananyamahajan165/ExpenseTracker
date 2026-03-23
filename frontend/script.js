@@ -9,7 +9,9 @@ function addExpense() {
 
     const bodyData = amount + "," + category + "," + description;
 
-    fetch(BASE_URL + "/addExpense", {
+    const url = editIndex === -1 ? "/addExpense" : "/updateExpense";
+
+    fetch(BASE_URL + url, {
         method: "POST",
         headers: {
             "Content-Type": "text/plain"
