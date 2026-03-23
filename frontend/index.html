@@ -108,6 +108,27 @@
     <!-- Expenses Table -->
     <div class="card">
       <h2>All Expenses</h2>
+      <!-- 👇 ADD BELOW "All Expenses" heading -->
+<div style="margin-bottom:10px;">
+
+  <select id="filterCategory" onchange="loadExpenses()">
+    <option value="ALL">All Categories</option>
+    <option value="FOOD">Food</option>
+    <option value="TRAVEL">Travel</option>
+    <option value="RENT">Rent</option>
+    <option value="SHOPPING">Shopping</option>
+    <option value="UTILITIES">Utilities</option>
+    <option value="OTHER">Other</option>
+  </select>
+
+  <input 
+    type="text" 
+    id="searchText" 
+    placeholder="Search description..." 
+    onkeyup="loadExpenses()"
+  >
+
+</div>
 
       <table border="1">
         <thead>
