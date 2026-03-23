@@ -20,7 +20,6 @@ function addExpense() {
     .then(data => {
         alert(data);
 
-        // clear inputs
         document.getElementById("amount").value = "";
         document.getElementById("category").value = "";
         document.getElementById("description").value = "";
@@ -42,43 +41,51 @@ function loadExpenses() {
         const rows = data.trim().split("\n");
         const selectedCategory = document.getElementById("filterCategory")?.value || "ALL";
         const searchText = document.getElementById("searchText")?.value.toLowerCase() || "";
+
         let html = "";
         let total = 0;
 
         for (let i = 0; i < rows.length; i++) {
 
-    if (rows[i].trim() === "") continue;
+            if (rows[i].trim() === "") continue;
 
-    const parts = rows[i].split(",");
+            const parts = rows[i].split(",");
 
-    const amount = parseInt(parts[0]);
-    const category = parts[1];
-    const description = (parts[2] || "").toLowerCase();
+            const amount = parseInt(parts[0]);
+            const category = parts[1];
+            const description = (parts[2] || "").toLowerCase();
 
-    // 🔥 CATEGORY FILTER
-    if (selectedCategory !== "ALL" && category !== selectedCategory) {
-        continue;
-    }
+            // FILTER CATEGORY
+            if (selectedCategory !== "ALL" && category !== selectedCategory) {
+                continue;
+            }
 
-    // 🔥 SEARCH FILTER
-    if (!description.includes(searchText)) {
-        continue;
-    }
+            // SEARCH FILTER
+            if (!description.includes(searchText)) {
+                continue;
+            }
 
-    total += amount;
+            total += amount;
 
-    html += `<tr>
-                <td>${amount}</td>
-                <td>${category}</td>
-                <td>-</td>
-                <td>${parts[2] || "-"}</td>
-                <td><button onclick="deleteExpense(${i})">Delete</button></td>
-             </tr>`;
+            html += `<tr>
+                        <td>${amount}</td>
+                        <td>${category}</td>
+                        <td>-</td>
+                        <td>${parts[2] || "-"}</td>
+                        <td><button onclick="deleteExpense(${i})">Delete</button></td>
+                     </tr>`;
+        }
+
+        // ✅ IMPORTANT FIX
+        document.getElementById("expenseTable").innerHTML = html;
+        document.getElementById("totalAmount").innerText = total;
+
+    })
+    .catch(err => console.error(err));
 }
-    };
 
 
-// ================= DELETE EXPENSE =================
+// ================= DELETE =================
 function deleteExpense(index) {
 
     fetch(BASE_URL + "/deleteExpense", {
@@ -90,8 +97,7 @@ function deleteExpense(index) {
         alert(data);
         loadExpenses();
         getSummary();
-    })
-    .catch(err => console.error("Delete error:", err));
+    });
 }
 
 
@@ -114,17 +120,13 @@ function loginUser() {
     .then(data => {
 
         if (data === "SUCCESS") {
-
             localStorage.setItem("username", username);
-
             alert("Login successful");
             showDashboard();
-
         } else {
             alert("Invalid credentials");
         }
-    })
-    .catch(err => console.error(err));
+    });
 }
 
 
@@ -144,21 +146,17 @@ function registerUser() {
         body: bodyData
     })
     .then(res => res.text())
-    .then(data => {
-        alert(data);
-    })
-    .catch(err => console.error(err));
+    .then(data => alert(data));
 }
 
 
-// ================= SHOW DASHBOARD =================
+// ================= DASHBOARD =================
 function showDashboard() {
 
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("dashboardSection").style.display = "block";
 
     const user = localStorage.getItem("username");
-
     document.getElementById("welcomeUser").innerText = "Logged in as: " + user;
 
     loadExpenses();
@@ -169,9 +167,7 @@ function showDashboard() {
 // ================= LOGOUT =================
 function logoutUser() {
 
-    fetch(BASE_URL + "/logout", {
-        method: "POST"
-    });
+    fetch(BASE_URL + "/logout", { method: "POST" });
 
     localStorage.removeItem("username");
 
@@ -254,7 +250,7 @@ function setBudget() {
 }
 
 
-// ================= TOGGLE LOGIN/REGISTER =================
+// ================= TOGGLE =================
 function showRegister(){
     document.getElementById("registerForm").style.display = "block";
 }
@@ -266,9 +262,7 @@ function showLogin(){
 
 // ================= AUTO LOGIN =================
 window.onload = function () {
-
     const user = localStorage.getItem("username");
-
     if (user) {
         showDashboard();
     }
