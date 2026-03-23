@@ -44,28 +44,10 @@ function loadExpenses() {
     .then(res => res.text())
     .then(data => {
 
-        let rows = data.trim().split("\n");
+        // ✅ NOW this is inside correctly
+        const rows = data.trim().split("\n");
 
-let expenseList = [];
-
-for (let i = 0; i < rows.length; i++) {
-
-    if (rows[i].trim() === "") continue;
-
-    const parts = rows[i].split(",");
-
-    expenseList.push({
-        amount: parseInt(parts[0]),
-        category: parts[1],
-        description: parts[2] || "",
-        index: i
-    });
-}
-        const selectedCategory = document.getElementById("filterCategory")?.value || "ALL";
-        const searchText = document.getElementById("searchText")?.value.toLowerCase() || "";
-
-        let html = "";
-        let total = 0;
+        let expenseList = [];
 
         for (let i = 0; i < rows.length; i++) {
 
@@ -73,35 +55,49 @@ for (let i = 0; i < rows.length; i++) {
 
             const parts = rows[i].split(",");
 
-            const amount = parseInt(parts[0]);
-            const category = parts[1];
-            const description = (parts[2] || "").toLowerCase();
-
-            // FILTER CATEGORY
-            if (selectedCategory !== "ALL" && category !== selectedCategory) {
-                continue;
-            }
-
-            // SEARCH FILTER
-            if (!description.includes(searchText)) {
-                continue;
-            }
-
-            total += amount;
-
-            html += `<tr>
-                        <td>${amount}</td>
-                        <td>${category}</td>
-                        <td>-</td>
-                        <td>${parts[2] || "-"}</td>
-                        <td>
-                        <button onclick="editExpense(${i}, '${amount}', '${category}', '${parts[2] || ""}')">Edit</button>
-                        <button onclick="deleteExpense(${i})">Delete</button>
-                        </td>
-                     </tr>`;
+            expenseList.push({
+                index: i,
+                amount: parseInt(parts[0]),
+                category: parts[1],
+                description: parts[2] || ""
+            });
         }
 
-        // ✅ IMPORTANT FIX
+        // ✅ SORTING HERE
+        const sortOption = document.getElementById("sortOption")?.value || "NONE";
+
+        if (sortOption === "HIGH") {
+            expenseList.sort((a, b) => b.amount - a.amount);
+        }
+        else if (sortOption === "LOW") {
+            expenseList.sort((a, b) => a.amount - b.amount);
+        }
+        else if (sortOption === "NEW") {
+            expenseList.reverse();
+        }
+
+        // ✅ BUILD TABLE
+        let html = "";
+        let total = 0;
+
+        for (let i = 0; i < expenseList.length; i++) {
+
+            const exp = expenseList[i];
+
+            total += exp.amount;
+
+            html += `<tr>
+                <td>${exp.amount}</td>
+                <td>${exp.category}</td>
+                <td>-</td>
+                <td>${exp.description}</td>
+                <td>
+                    <button onclick="editExpense(${exp.index}, '${exp.amount}', '${exp.category}', '${exp.description}')">Edit</button>
+                    <button onclick="deleteExpense(${exp.index})">Delete</button>
+                </td>
+            </tr>`;
+        }
+
         document.getElementById("expenseTable").innerHTML = html;
         document.getElementById("totalAmount").innerText = total;
 
