@@ -10,7 +10,7 @@ A console-based **Expense Tracker application** built using **Core Java**, desig
 - User registration & login
 - Password hashing
 - Forgot & change password functionality
-
+- 
 ### 💰 Expense Management
 - Add expenses with:
   - Amount
