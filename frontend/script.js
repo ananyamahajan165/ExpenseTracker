@@ -14,6 +14,10 @@ function addExpense() {
 
     const url = editIndex === -1 ? "/addExpense" : "/updateExpense";
 
+    if (!amount || !category) {
+    alert("Please fill all required fields");
+    return;
+}
     fetch(BASE_URL + url, {
         method: "POST",
         headers: {
@@ -23,7 +27,7 @@ function addExpense() {
     })
     .then(res => res.text())
     .then(data => {
-        alert(data);
+        showMessage("Expense saved successfully");
 
         document.getElementById("amount").value = "";
         document.getElementById("category").value = "";
@@ -39,6 +43,8 @@ function addExpense() {
 
 // ================= LOAD EXPENSES =================
 function loadExpenses() {
+    document.getElementById("expenseTable").innerHTML =
+    `<tr><td colspan="5">Loading...</td></tr>`;
 
     fetch(BASE_URL + "/getExpenses")
     .then(res => res.text())
@@ -98,7 +104,12 @@ function loadExpenses() {
             </tr>`;
         }
 
-        document.getElementById("expenseTable").innerHTML = html;
+        if (html === "") {
+    document.getElementById("expenseTable").innerHTML =
+        `<tr><td colspan="5">No expenses found</td></tr>`;
+} else {
+    document.getElementById("expenseTable").innerHTML = html;
+}
         document.getElementById("totalAmount").innerText = total;
 
     })
@@ -118,6 +129,10 @@ function editExpense(index, amount, category, description) {
     document.getElementById("description").value = description;
 
     editIndex = index;
+}
+
+if (!confirm("Are you sure you want to delete this expense?")) {
+    return;
 }
     fetch(BASE_URL + "/deleteExpense", {
         method: "POST",
@@ -242,24 +257,39 @@ function getSummary() {
 
 
 // ================= CHART =================
+let chart;
+
 function renderChart(data) {
 
     const ctx = document.getElementById("expenseChart").getContext("2d");
 
-    const labels = Object.keys(data.byCategory);
-    const values = Object.values(data.byCategory);
+    if (chart) {
+        chart.destroy();
+    }
 
-    new Chart(ctx, {
+    chart = new Chart(ctx, {
         type: "pie",
         data: {
-            labels: labels,
+            labels: Object.keys(data.byCategory),
             datasets: [{
-                data: values
+                data: Object.values(data.byCategory)
             }]
         }
     });
 }
 
+
+function showMessage(msg) {
+    const div = document.createElement("div");
+    div.innerText = msg;
+    div.style.background = "green";
+    div.style.color = "white";
+    div.style.padding = "10px";
+    div.style.margin = "10px";
+    document.body.appendChild(div);
+
+    setTimeout(() => div.remove(), 2000);
+}
 
 // ================= SET BUDGET =================
 function setBudget() {
