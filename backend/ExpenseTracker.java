@@ -63,7 +63,8 @@ static void startServer() {
 
     
     try {
-        HttpServer server = HttpServer.create(new InetSocketAddress(9080), 0);
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9080"));
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         // -------- HEALTH CHECK --------
 
