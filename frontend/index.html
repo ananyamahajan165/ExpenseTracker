@@ -109,16 +109,19 @@
     <div class="card">
       <h2>All Expenses</h2>
       <!-- 👇 ADD BELOW "All Expenses" heading -->
-<div style="margin-bottom:10px;">
+<div style="display:flex; gap:10px; margin-bottom:10px;">
 
+  <!-- SORT -->
+  <select id="sortOption" onchange="loadExpenses()">
+    <option value="NONE">Sort</option>
+    <option value="HIGH">Amount High → Low</option>
+    <option value="LOW">Amount Low → High</option>
+    <option value="NEW">Newest First</option>
+    <option value="OLD">Oldest First</option>
+  </select>
+
+  <!-- FILTER -->
   <select id="filterCategory" onchange="loadExpenses()">
-    <select id="sortOption" onchange="loadExpenses()">
-  <option value="NONE">Sort</option>
-  <option value="HIGH">Amount High → Low</option>
-  <option value="LOW">Amount Low → High</option>
-  <option value="NEW">Newest First</option>
-  <option value="OLD">Oldest First</option>
-</select>
     <option value="ALL">All Categories</option>
     <option value="FOOD">Food</option>
     <option value="TRAVEL">Travel</option>
@@ -128,10 +131,11 @@
     <option value="OTHER">Other</option>
   </select>
 
+  <!-- SEARCH -->
   <input 
     type="text" 
     id="searchText" 
-    placeholder="Search description..." 
+    placeholder="Search description..."
     onkeyup="loadExpenses()"
   >
 
