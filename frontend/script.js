@@ -43,8 +43,15 @@ function addExpense() {
 
 // ================= LOAD EXPENSES =================
 function loadExpenses() {
+    if (html === "") {
     document.getElementById("expenseTable").innerHTML =
-    `<tr><td colspan="5">Loading...</td></tr>`;
+        `<tr><td colspan="5">No expenses yet</td></tr>`;
+} else {
+    document.getElementById("expenseTable").innerHTML = html;
+}
+
+document.getElementById("totalAmount").innerText = total;
+
 
     fetch(BASE_URL + "/getExpenses")
     .then(res => res.text())
