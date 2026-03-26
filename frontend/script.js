@@ -335,3 +335,18 @@ window.onload = function () {
         showDashboard();
     }
 };
+
+
+function showToast(msg) {
+    const div = document.createElement("div");
+    div.innerText = msg;
+    div.style.position = "fixed";
+    div.style.bottom = "20px";
+    div.style.right = "20px";
+    div.style.background = "#22c55e";
+    div.style.color = "white";
+    div.style.padding = "10px";
+    document.body.appendChild(div);
+
+    setTimeout(() => div.remove(), 2000);
+}
