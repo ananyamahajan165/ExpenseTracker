@@ -4,6 +4,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Expense Tracker</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -24,7 +28,7 @@
     <span onclick="showRegister()">Register</span>
   </p>
 
-  <!-- REGISTER FORM -->
+  <!-- REGISTER -->
   <div id="registerForm" style="display:none;">
 
     <h3>Create Account</h3>
@@ -48,33 +52,46 @@
 <div id="dashboardSection" style="display:none;">
   <div class="container">
 
-    <!-- Header -->
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h1>Smart Expense Analytics Dashboard</h1>
+    <!-- HEADER -->
+    <div class="header">
+      <h1>💰 Expense Dashboard</h1>
       <div>
         <span id="welcomeUser"></span>
         <button onclick="logoutUser()">Logout</button>
       </div>
     </div>
 
-    <!-- Budget -->
-    <div class="card">
+    <!-- STATS ROW -->
+    <div style="display:flex; gap:20px; flex-wrap:wrap;">
 
-      <h2>Budget Status</h2>
+      <div class="card" style="flex:1;">
+        <h3>Total Spending</h3>
+        <h2>₹ <span id="totalAmount">0</span></h2>
+      </div>
 
-      <input type="number" id="budgetInput" placeholder="Enter Monthly Budget">
+      <div class="card" style="flex:1;">
+        <h3>Budget</h3>
+        <h2>₹ <span id="budgetAmount">0</span></h2>
+      </div>
 
-      <button onclick="setBudget()">Set Budget</button>
-
-      <p>Monthly Budget: ₹ <span id="budgetAmount">0</span></p>
-
-      <p>Remaining: ₹ <span id="remainingAmount">0</span></p>
-
-      <p id="budgetWarning"></p>
+      <div class="card" style="flex:1;">
+        <h3>Remaining</h3>
+        <h2>₹ <span id="remainingAmount">0</span></h2>
+      </div>
 
     </div>
 
-    <!-- Add Expense -->
+    <!-- BUDGET -->
+    <div class="card">
+      <h2>Set Monthly Budget</h2>
+
+      <input type="number" id="budgetInput" placeholder="Enter Budget">
+      <button onclick="setBudget()">Set Budget</button>
+
+      <p id="budgetWarning"></p>
+    </div>
+
+    <!-- ADD EXPENSE -->
     <div class="card">
       <h2>Add Expense</h2>
 
@@ -94,54 +111,47 @@
 
         <input type="text" id="description" placeholder="Description">
 
-        <button type="button" onclick="addExpense()">Add Expense</button>
+        <button type="button" onclick="addExpense()">Add</button>
 
       </form>
     </div>
 
-    <!-- Total -->
-    <div class="card">
-      <h2>Total Spending</h2>
-      <h1>₹ <span id="totalAmount">0</span></h1>
-    </div>
-
-    <!-- Expenses Table -->
+    <!-- EXPENSES -->
     <div class="card">
       <h2>All Expenses</h2>
-      <!-- 👇 ADD BELOW "All Expenses" heading -->
-<div style="display:flex; gap:10px; margin-bottom:10px;">
 
-  <!-- SORT -->
-  <select id="sortOption" onchange="loadExpenses()">
-    <option value="NONE">Sort</option>
-    <option value="HIGH">Amount High → Low</option>
-    <option value="LOW">Amount Low → High</option>
-    <option value="NEW">Newest First</option>
-    <option value="OLD">Oldest First</option>
-  </select>
+      <!-- FILTER + SORT -->
+      <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
 
-  <!-- FILTER -->
-  <select id="filterCategory" onchange="loadExpenses()">
-    <option value="ALL">All Categories</option>
-    <option value="FOOD">Food</option>
-    <option value="TRAVEL">Travel</option>
-    <option value="RENT">Rent</option>
-    <option value="SHOPPING">Shopping</option>
-    <option value="UTILITIES">Utilities</option>
-    <option value="OTHER">Other</option>
-  </select>
+        <select id="sortOption" onchange="loadExpenses()">
+          <option value="NONE">Sort</option>
+          <option value="HIGH">Amount High → Low</option>
+          <option value="LOW">Amount Low → High</option>
+          <option value="NEW">Newest First</option>
+          <option value="OLD">Oldest First</option>
+        </select>
 
-  <!-- SEARCH -->
-  <input 
-    type="text" 
-    id="searchText" 
-    placeholder="Search description..."
-    onkeyup="loadExpenses()"
-  >
+        <select id="filterCategory" onchange="loadExpenses()">
+          <option value="ALL">All Categories</option>
+          <option value="FOOD">Food</option>
+          <option value="TRAVEL">Travel</option>
+          <option value="RENT">Rent</option>
+          <option value="SHOPPING">Shopping</option>
+          <option value="UTILITIES">Utilities</option>
+          <option value="OTHER">Other</option>
+        </select>
 
-</div>
+        <input 
+          type="text" 
+          id="searchText" 
+          placeholder="Search description..."
+          onkeyup="loadExpenses()"
+        >
 
-      <table border="1">
+      </div>
+
+      <!-- TABLE -->
+      <table>
         <thead>
           <tr>
             <th>Amount</th>
@@ -152,14 +162,12 @@
           </tr>
         </thead>
 
-        <!-- ✅ IMPORTANT CHANGE HERE -->
         <tbody id="expenseTable"></tbody>
-
       </table>
 
     </div>
 
-    <!-- Chart -->
+    <!-- CHART -->
     <div class="card">
       <h2>Expense Breakdown</h2>
       <canvas id="expenseChart"></canvas>

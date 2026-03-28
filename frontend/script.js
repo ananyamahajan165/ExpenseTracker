@@ -71,23 +71,23 @@ function loadExpenses() {
         // 👉 Convert raw data into objects
         for (let i = 0; i < rows.length; i++) {
 
-            if (rows[i].trim() === "") continue;
+    if (rows[i].trim() === "") continue;
 
-            const parts = rows[i].split(",");
+    const parts = rows[i].split("|");
 
-            const amount = parseFloat(parts[0]);
-            const category = parts[1];
-            const description = parts[2];
-            const date = parts[3] || new Date().toLocaleDateString();
-
-            expenseList.push({
-                amount,
-                category,
-                description,
-                date
-            });
-        }
-
+    const amount = parseFloat(parts[0]);
+    const category = parts[1];
+    const description = parts[2];
+    const date = parts[3];
+    const timestamp = parts[4]; 
+    expenseList.push({           
+        amount,
+        category,
+        description,
+        date,
+        timestamp
+    });
+}
         // 👉 FILTER
         expenseList = expenseList.filter(exp => {
 
@@ -123,7 +123,7 @@ function loadExpenses() {
                     <td>${exp.date}</td>
                     <td>${exp.description}</td>
                     <td>
-                        <button onclick="deleteExpense(${i})">Delete</button>
+                    <button onclick="deleteExpense('${exp.timestamp}')">Delete</button>   
                     </td>
                 </tr>
             `;
