@@ -1,46 +1,33 @@
-# Expense Tracker (Java Console Application)
+# 💰 Expense Tracker Dashboard
 
-A console-based **Expense Tracker application** built using **Core Java**, designed to help users manage their daily expenses efficiently with authentication, budgeting, and detailed reports.
+A full-stack Expense Tracker application built using Java (backend) and HTML, CSS, JavaScript (frontend).
 
 ---
 
 ## 🚀 Features
 
-### 🔐 User Management
-- User registration & login
-- Password hashing
-- Forgot & change password functionality
-- 
-### 💰 Expense Management
-- Add expenses with:
-  - Amount
-  - Category Based
-  - Date & Timestamp
-  - Description
-- View all expenses
-- Monthly expense filtering
-- Category-wise monthly report
-- Search expenses by keyword
-- Sort expenses by amount or date
-  
-### 📊 Budgeting
-- Set monthly budget
-- Budget usage alerts (warnings)
-- Remaining balance calculation
+- User Authentication (Login/Register)
+- Add, Edit, Delete Expenses (CRUD)
+- Category Filtering & Search
+- Sorting (High → Low, Latest)
+- Monthly Budget Tracking
+- Export Data to CSV
+- Responsive Dashboard UI
 
-### 🛡️ Robustness
-- Input validation
-- Custom exceptions
-- Safe file handling
-
+---
 
 ## 🛠️ Tech Stack
-- Java (Core)
-- File Handling
-- Collections Framework
-- Enums
-- Custom Exceptions
-- SHA-256 Password Hashing
+
+- Frontend: HTML, CSS, JavaScript
+- Backend: Java (HTTP Server)
+- Data Storage: File System (Text File)
+
+---
 
 
-## 📁 Project Structure
+
+## ▶️ How to Run
+
+1. Compile backend:
+   ```bash
+   javac backend/*.java
