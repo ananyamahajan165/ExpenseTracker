@@ -1,4 +1,6 @@
-const BASE_URL = "https://your-render-url.onrender.com";
+const BASE_URL = "http://localhost:9080";
+
+let editIndex = -1; 
 
 // ================= ADD EXPENSE =================
 function addExpense() {
