@@ -45,85 +45,108 @@ function addExpense() {
 
 // ================= LOAD EXPENSES =================
 function loadExpenses() {
-    if (html === "") {
-    document.getElementById("expenseTable").innerHTML =
-        `<tr><td colspan="5">No expenses yet</td></tr>`;
-} else {
-    document.getElementById("expenseTable").innerHTML = html;
-}
-
-document.getElementById("totalAmount").innerText = total;
-
 
     fetch(BASE_URL + "/getExpenses")
     .then(res => res.text())
     .then(data => {
 
-        // ✅ NOW this is inside correctly
+        if (!data) {
+            document.getElementById("expenseTable").innerHTML =
+                `<tr><td colspan="5">No expenses yet</td></tr>`;
+            document.getElementById("totalAmount").innerText = 0;
+            return;
+        }
+
         const rows = data.trim().split("\n");
+
+        let html = "";
+        let total = 0;
+
+        const sortOption = document.getElementById("sortOption")?.value || "NONE";
+        const filterCategory = document.getElementById("filterCategory")?.value || "ALL";
+        const searchText = document.getElementById("searchText")?.value.toLowerCase() || "";
 
         let expenseList = [];
 
+        // 👉 Convert raw data into objects
         for (let i = 0; i < rows.length; i++) {
 
             if (rows[i].trim() === "") continue;
 
             const parts = rows[i].split(",");
 
+            const amount = parseFloat(parts[0]);
+            const category = parts[1];
+            const description = parts[2];
+            const date = parts[3] || new Date().toLocaleDateString();
+
             expenseList.push({
-                index: i,
-                amount: parseInt(parts[0]),
-                category: parts[1],
-                description: parts[2] || ""
+                amount,
+                category,
+                description,
+                date
             });
         }
 
-        // ✅ SORTING HERE
-        const sortOption = document.getElementById("sortOption")?.value || "NONE";
+        // 👉 FILTER
+        expenseList = expenseList.filter(exp => {
 
+            const matchCategory =
+                filterCategory === "ALL" || exp.category === filterCategory;
+
+            const matchSearch =
+                exp.description.toLowerCase().includes(searchText);
+
+            return matchCategory && matchSearch;
+        });
+
+        // 👉 SORT
         if (sortOption === "HIGH") {
             expenseList.sort((a, b) => b.amount - a.amount);
-        }
-        else if (sortOption === "LOW") {
+        } else if (sortOption === "LOW") {
             expenseList.sort((a, b) => a.amount - b.amount);
-        }
-        else if (sortOption === "NEW") {
+        } else if (sortOption === "NEW") {
             expenseList.reverse();
         }
 
-        // ✅ BUILD TABLE
-        let html = "";
-        let total = 0;
-
+        // 👉 BUILD TABLE
         for (let i = 0; i < expenseList.length; i++) {
 
             const exp = expenseList[i];
 
             total += exp.amount;
 
-            html += `<tr>
-                <td>${exp.amount}</td>
-                <td>${exp.category}</td>
-                <td>-</td>
-                <td>${exp.description}</td>
-                <td>
-                    <button onclick="editExpense(${exp.index}, '${exp.amount}', '${exp.category}', '${exp.description}')">Edit</button>
-                    <button onclick="deleteExpense(${exp.index})">Delete</button>
-                </td>
-            </tr>`;
+            html += `
+                <tr>
+                    <td>₹ ${exp.amount}</td>
+                    <td>${exp.category}</td>
+                    <td>${exp.date}</td>
+                    <td>${exp.description}</td>
+                    <td>
+                        <button onclick="deleteExpense(${i})">Delete</button>
+                    </td>
+                </tr>
+            `;
         }
 
+        // 👉 SHOW DATA OR EMPTY MESSAGE
         if (html === "") {
-    document.getElementById("expenseTable").innerHTML =
-        `<tr><td colspan="5">No expenses found</td></tr>`;
-} else {
-    document.getElementById("expenseTable").innerHTML = html;
-}
-        document.getElementById("totalAmount").innerText = total;
+            document.getElementById("expenseTable").innerHTML =
+                `<tr><td colspan="5">No expenses yet</td></tr>`;
+        } else {
+            document.getElementById("expenseTable").innerHTML = html;
+        }
 
+        document.getElementById("totalAmount").innerText = total;
     })
-    .catch(err => console.error(err));
+    .catch(err => {
+        console.error(err);
+    });
 }
+
+
+
+
 
 
 // ================= DELETE =================
