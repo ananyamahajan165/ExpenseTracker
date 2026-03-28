@@ -378,13 +378,15 @@ function showToast(msg) {
 
 
 
+function deleteExpense(timestamp) {
 
-function deleteExpense(index) {
-
-    fetch(BASE_URL + "/deleteExpense?index=" + index)
-    .then(res => res.text())
+    fetch(BASE_URL + "/deleteExpense/" + timestamp, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
     .then(data => {
-        showToast("Expense deleted");
+        showToast("Deleted successfully");
         loadExpenses();
-    });
+    })
+    .catch(err => console.error(err));
 }

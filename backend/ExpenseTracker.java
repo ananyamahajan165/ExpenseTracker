@@ -416,27 +416,31 @@ server.createContext("/deleteExpense", exchange -> {
         File inputFile = new File(EXPENSE_FILE);
         List<String> updatedLines = new ArrayList<>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(inputFile))) {
-            String line;
-            while ((line = br.readLine()) != null) {
+        BufferedReader br = new BufferedReader(new FileReader(inputFile));
+        String line;
 
-                String[] data = line.split("\\|");
+        while ((line = br.readLine()) != null) {
 
-                if (data.length >= 6) {
-                    String timestamp = data[4];
+            String[] data = line.split("\\|");
 
-                    if (!timestamp.equals(timestampToDelete)) {
-                        updatedLines.add(line);
-                    }
+            if (data.length >= 6) {
+                String timestamp = data[4];
+
+                if (!timestamp.equals(timestampToDelete)) {
+                    updatedLines.add(line);
                 }
             }
         }
 
-        try (FileWriter fw = new FileWriter(inputFile)) {
-            for (String l : updatedLines) {
-                fw.write(l + "\n");
-            }
+        br.close();
+
+        FileWriter fw = new FileWriter(inputFile);
+
+        for (String l : updatedLines) {
+            fw.write(l + "\n");
         }
+
+        fw.close();
 
         sendJson(exchange, 200,
             "{\"status\":\"success\",\"message\":\"Expense deleted\"}");
@@ -447,6 +451,7 @@ server.createContext("/deleteExpense", exchange -> {
             "{\"status\":\"error\",\"message\":\"Delete failed\"}");
     }
 });
+
 
 
 
