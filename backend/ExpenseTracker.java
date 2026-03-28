@@ -391,7 +391,7 @@ while ((line = br.readLine()) != null) {
 
 
 
-server.createContext("/delete-expense", exchange -> {
+server.createContext("/deleteExpense", exchange -> {
 
     enableCors(exchange);
 
@@ -447,6 +447,11 @@ server.createContext("/delete-expense", exchange -> {
             "{\"status\":\"error\",\"message\":\"Delete failed\"}");
     }
 });
+
+
+
+
+
 
 
 
@@ -508,6 +513,8 @@ server.createContext("/add-expense", exchange -> {
             "{\"status\":\"error\",\"message\":\"Failed to add expense\"}");
     }
 });
+
+
 
 
 

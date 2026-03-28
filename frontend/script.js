@@ -375,3 +375,16 @@ function showToast(msg) {
 
     setTimeout(() => div.remove(), 2000);
 }
+
+
+
+
+function deleteExpense(index) {
+
+    fetch(BASE_URL + "/deleteExpense?index=" + index)
+    .then(res => res.text())
+    .then(data => {
+        showToast("Expense deleted");
+        loadExpenses();
+    });
+}
