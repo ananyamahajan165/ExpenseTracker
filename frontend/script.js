@@ -390,3 +390,38 @@ function deleteExpense(timestamp) {
     })
     .catch(err => console.error(err));
 }
+
+
+
+
+
+function exportCSV() {
+
+    fetch(BASE_URL + "/getExpenses")
+    .then(res => res.text())
+    .then(data => {
+
+        if (!data) {
+            alert("No data to export");
+            return;
+        }
+
+        const rows = data.trim().split("\n");
+
+        let csv = "Amount,Category,Description\n";
+
+        for (let i = 0; i < rows.length; i++) {
+            const parts = rows[i].split("|");
+
+            csv += `${parts[0]},${parts[1]},${parts[2]}\n`;
+        }
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "expenses.csv";
+        a.click();
+    });
+}
