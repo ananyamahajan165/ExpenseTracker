@@ -382,6 +382,53 @@ server.createContext("/login", exchange -> {
 });
 
 
+server.createContext("/forgot-password", exchange -> {
+
+    enableCors(exchange);
+
+    if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+        sendJson(exchange, 405,
+            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        return;
+    }
+
+    try {
+        String body = new String(exchange.getRequestBody().readAllBytes());
+        String[] parts = body.split("\\|");
+
+        if (parts.length < 2) {
+            sendJson(exchange, 400,
+                "{\"status\":\"error\",\"message\":\"Invalid data\"}");
+            return;
+        }
+
+        String username = parts[0].trim().toLowerCase();
+        String newPassword = parts[1].trim();
+
+        if (username.isBlank() || newPassword.isBlank()) {
+            sendJson(exchange, 400,
+                "{\"status\":\"error\",\"message\":\"Username and new password are required\"}");
+            return;
+        }
+
+        boolean updated = updateUserPassword(username, newPassword);
+
+        if (!updated) {
+            sendJson(exchange, 404,
+                "{\"status\":\"error\",\"message\":\"User not found\"}");
+            return;
+        }
+
+        sendJson(exchange, 200,
+            "{\"status\":\"success\",\"message\":\"Password reset successful\"}");
+    } catch (Exception e) {
+        e.printStackTrace();
+        sendJson(exchange, 500,
+            "{\"status\":\"error\",\"message\":\"Failed to reset password\"}");
+    }
+});
+
+
 
 
 
@@ -1286,6 +1333,41 @@ while (cat == null) {
                 fw.write(line + "\n");
             }
         }
+    }
+
+    static boolean updateUserPassword(String username, String newPassword) throws IOException {
+        List<String> users = new ArrayList<>();
+        boolean updated = false;
+        String hashedPassword = hashPassword(newPassword);
+
+        try (BufferedReader br = new BufferedReader(new FileReader(USER_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.isBlank()) {
+                    continue;
+                }
+
+                String[] parts = line.split("\\|");
+                if (parts.length >= 2 && parts[0].equals(username)) {
+                    users.add(username + "|" + hashedPassword);
+                    updated = true;
+                } else {
+                    users.add(line);
+                }
+            }
+        }
+
+        if (!updated) {
+            return false;
+        }
+
+        try (FileWriter fw = new FileWriter(USER_FILE)) {
+            for (String user : users) {
+                fw.write(user + "\n");
+            }
+        }
+
+        return true;
     }
 
     static String escapeJson(String value) {

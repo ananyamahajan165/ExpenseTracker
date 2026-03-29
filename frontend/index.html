@@ -28,6 +28,11 @@
     <span onclick="showRegister()">Register</span>
   </p>
 
+  <p>
+    Forgot password?
+    <span onclick="showForgotPassword()">Reset here</span>
+  </p>
+
   <!-- REGISTER -->
   <div id="registerForm" style="display:none;">
 
@@ -40,6 +45,22 @@
 
     <p>
       Already have an account?
+      <span onclick="showLogin()">Login</span>
+    </p>
+
+  </div>
+
+  <div id="forgotPasswordForm" style="display:none;">
+
+    <h3>Reset Password</h3>
+
+    <input type="text" id="forgotUsername" placeholder="Username">
+    <input type="password" id="forgotNewPassword" placeholder="New Password">
+
+    <button onclick="forgotPassword()">Reset Password</button>
+
+    <p>
+      Back to login?
       <span onclick="showLogin()">Login</span>
     </p>
 

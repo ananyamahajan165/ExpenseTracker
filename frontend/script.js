@@ -267,6 +267,35 @@ async function registerUser() {
     }
 }
 
+async function forgotPassword() {
+    const username = document.getElementById("forgotUsername").value.trim();
+    const newPassword = document.getElementById("forgotNewPassword").value;
+
+    if (!username || !newPassword) {
+        showToast("Enter username and new password", true);
+        return;
+    }
+
+    try {
+        const data = await parseResponse(
+            await fetch(`${BASE_URL}/forgot-password`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: `${username}|${newPassword}`
+            })
+        );
+
+        document.getElementById("forgotUsername").value = "";
+        document.getElementById("forgotNewPassword").value = "";
+        showLogin();
+        showToast(data.message || "Password reset successful");
+    } catch (error) {
+        showToast(error.message, true);
+    }
+}
+
 function showDashboard() {
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("dashboardSection").style.display = "block";
@@ -388,10 +417,17 @@ async function setBudget() {
 
 function showRegister() {
     document.getElementById("registerForm").style.display = "block";
+    document.getElementById("forgotPasswordForm").style.display = "none";
 }
 
 function showLogin() {
     document.getElementById("registerForm").style.display = "none";
+    document.getElementById("forgotPasswordForm").style.display = "none";
+}
+
+function showForgotPassword() {
+    document.getElementById("registerForm").style.display = "none";
+    document.getElementById("forgotPasswordForm").style.display = "block";
 }
 
 function handleMonthChange() {
