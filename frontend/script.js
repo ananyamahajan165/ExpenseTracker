@@ -1,298 +1,325 @@
 const BASE_URL = "http://localhost:9080";
 
-let editIndex = -1; 
+let chart;
 
-// ================= ADD EXPENSE =================
-function addExpense() {
-
-    const amount = document.getElementById("amount").value;
-    const category = document.getElementById("category").value;
-    const description = document.getElementById("description").value;
-
-    const bodyData = editIndex === -1
-        ? amount + "," + category + "," + description
-        : editIndex + "," + amount + "," + category + "," + description;
-
-
-    const url = editIndex === -1 ? "/addExpense" : "/updateExpense";
-
-    if (!amount || !category) {
-    alert("Please fill all required fields");
-    return;
-}
-    fetch(BASE_URL + url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "text/plain"
-        },
-        body: bodyData
-    })
-    .then(res => res.text())
-    .then(data => {
-        showMessage("Expense saved successfully");
-
-        document.getElementById("amount").value = "";
-        document.getElementById("category").value = "";
-        document.getElementById("description").value = "";
-
-        editIndex = -1; 
-
-        loadExpenses();
-        getSummary();
-    });
+function getAuthToken() {
+    return localStorage.getItem("authToken");
 }
 
+function getStoredUsername() {
+    return localStorage.getItem("username");
+}
 
-// ================= LOAD EXPENSES =================
-function loadExpenses() {
+function authHeaders(extraHeaders = {}) {
+    const token = getAuthToken();
+    const headers = { ...extraHeaders };
 
-    fetch(BASE_URL + "/getExpenses")
-    .then(res => res.text())
-    .then(data => {
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
 
-        if (!data) {
-            document.getElementById("expenseTable").innerHTML =
-                `<tr><td colspan="5">No expenses yet</td></tr>`;
-            document.getElementById("totalAmount").innerText = 0;
-            return;
-        }
+    return headers;
+}
 
-        const rows = data.trim().split("\n");
+async function parseResponse(response) {
+    const contentType = response.headers.get("content-type") || "";
+    const payload = contentType.includes("application/json")
+        ? await response.json()
+        : await response.text();
 
-        let html = "";
-        let total = 0;
+    if (!response.ok) {
+        const message = typeof payload === "string"
+            ? payload
+            : payload.message || "Something went wrong";
+        throw new Error(message);
+    }
+
+    return payload;
+}
+
+function resetExpenseForm() {
+    document.getElementById("amount").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("description").value = "";
+}
+
+function clearAuthState() {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("username");
+}
+
+function showToast(msg, isError = false) {
+    const div = document.createElement("div");
+    div.innerText = msg;
+    div.style.position = "fixed";
+    div.style.bottom = "20px";
+    div.style.right = "20px";
+    div.style.background = isError ? "#dc2626" : "#22c55e";
+    div.style.color = "white";
+    div.style.padding = "10px 14px";
+    div.style.borderRadius = "10px";
+    div.style.boxShadow = "0 10px 30px rgba(0,0,0,0.15)";
+    div.style.zIndex = "1000";
+    document.body.appendChild(div);
+
+    setTimeout(() => div.remove(), 2200);
+}
+
+function renderExpenses(expenseList) {
+    const expenseTable = document.getElementById("expenseTable");
+    const totalAmount = document.getElementById("totalAmount");
+
+    if (!expenseList.length) {
+        expenseTable.innerHTML = `<tr><td colspan="5">No expenses yet</td></tr>`;
+        totalAmount.innerText = "0";
+        return;
+    }
+
+    let total = 0;
+    let html = "";
+
+    for (const exp of expenseList) {
+        total += Number(exp.amount || 0);
+
+        html += `
+            <tr>
+                <td>₹ ${Number(exp.amount).toFixed(2)}</td>
+                <td>${exp.category || ""}</td>
+                <td>${exp.date || ""}</td>
+                <td>${exp.description || ""}</td>
+                <td><button onclick="deleteExpense('${exp.timestamp}')">Delete</button></td>
+            </tr>
+        `;
+    }
+
+    expenseTable.innerHTML = html;
+    totalAmount.innerText = total.toFixed(2);
+}
+
+async function loadExpenses() {
+    try {
+        const expenses = await parseResponse(
+            await fetch(`${BASE_URL}/expenses`, {
+                headers: authHeaders()
+            })
+        );
 
         const sortOption = document.getElementById("sortOption")?.value || "NONE";
         const filterCategory = document.getElementById("filterCategory")?.value || "ALL";
-        const searchText = document.getElementById("searchText")?.value.toLowerCase() || "";
+        const searchText = document.getElementById("searchText")?.value.trim().toLowerCase() || "";
 
-        let expenseList = [];
-
-        // 👉 Convert raw data into objects
-        for (let i = 0; i < rows.length; i++) {
-
-    if (rows[i].trim() === "") continue;
-
-    const parts = rows[i].split("|");
-
-    const amount = parseFloat(parts[0]);
-    const category = parts[1];
-    const description = parts[2];
-    const date = parts[3];
-    const timestamp = parts[4]; 
-    expenseList.push({           
-        amount,
-        category,
-        description,
-        date,
-        timestamp
-    });
-}
-        // 👉 FILTER
-        expenseList = expenseList.filter(exp => {
-
-            const matchCategory =
+        let expenseList = expenses.filter(exp => {
+            const matchesCategory =
                 filterCategory === "ALL" || exp.category === filterCategory;
-
-            const matchSearch =
-                exp.description.toLowerCase().includes(searchText);
-
-            return matchCategory && matchSearch;
+            const description = (exp.description || "").toLowerCase();
+            return matchesCategory && description.includes(searchText);
         });
 
-        // 👉 SORT
         if (sortOption === "HIGH") {
-            expenseList.sort((a, b) => b.amount - a.amount);
+            expenseList.sort((a, b) => Number(b.amount) - Number(a.amount));
         } else if (sortOption === "LOW") {
-            expenseList.sort((a, b) => a.amount - b.amount);
+            expenseList.sort((a, b) => Number(a.amount) - Number(b.amount));
         } else if (sortOption === "NEW") {
-            expenseList.reverse();
+            expenseList.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        } else if (sortOption === "OLD") {
+            expenseList.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         }
 
-        // 👉 BUILD TABLE
-        for (let i = 0; i < expenseList.length; i++) {
-
-            const exp = expenseList[i];
-
-            total += exp.amount;
-
-            html += `
-                <tr>
-                    <td>₹ ${exp.amount}</td>
-                    <td>${exp.category}</td>
-                    <td>${exp.date}</td>
-                    <td>${exp.description}</td>
-                    <td>
-                    <button onclick="deleteExpense('${exp.timestamp}')">Delete</button>   
-                    </td>
-                </tr>
-            `;
+        renderExpenses(expenseList);
+    } catch (error) {
+        if (error.message === "Please login first") {
+            clearAuthState();
+            showLoginScreen();
         }
-
-        // 👉 SHOW DATA OR EMPTY MESSAGE
-        if (html === "") {
-            document.getElementById("expenseTable").innerHTML =
-                `<tr><td colspan="5">No expenses yet</td></tr>`;
-        } else {
-            document.getElementById("expenseTable").innerHTML = html;
-        }
-
-        document.getElementById("totalAmount").innerText = total;
-    })
-    .catch(err => {
-        console.error(err);
-    });
+        console.error(error);
+    }
 }
 
+async function addExpense() {
+    const amount = document.getElementById("amount").value.trim();
+    const category = document.getElementById("category").value;
+    const description = document.getElementById("description").value.trim();
 
+    if (!amount || !category || !description) {
+        showToast("Please fill all expense fields", true);
+        return;
+    }
 
+    try {
+        await parseResponse(
+            await fetch(`${BASE_URL}/add-expense`, {
+                method: "POST",
+                headers: authHeaders({
+                    "Content-Type": "text/plain"
+                }),
+                body: `${amount}|${category}|${description}`
+            })
+        );
 
-
-
-// ================= DELETE =================
-function deleteExpense(index) {
-
-    let editIndex = -1;
-
-function editExpense(index, amount, category, description) {
-
-    document.getElementById("amount").value = amount;
-    document.getElementById("category").value = category;
-    document.getElementById("description").value = description;
-
-    editIndex = index;
+        resetExpenseForm();
+        await Promise.all([loadExpenses(), getSummary()]);
+        showToast("Expense added successfully");
+    } catch (error) {
+        showToast(error.message, true);
+    }
 }
 
-if (!confirm("Are you sure you want to delete this expense?")) {
-    return;
+async function deleteExpense(timestamp) {
+    if (!confirm("Are you sure you want to delete this expense?")) {
+        return;
+    }
+
+    try {
+        await parseResponse(
+            await fetch(`${BASE_URL}/deleteExpense/${encodeURIComponent(timestamp)}`, {
+                method: "DELETE",
+                headers: authHeaders()
+            })
+        );
+
+        await Promise.all([loadExpenses(), getSummary()]);
+        showToast("Deleted successfully");
+    } catch (error) {
+        showToast(error.message, true);
+    }
 }
-    fetch(BASE_URL + "/deleteExpense", {
-        method: "POST",
-        body: index.toString()
-    })
-    .then(res => res.text())
-    .then(data => {
-        alert(data);
-        loadExpenses();
-        getSummary();
-    });
-}
 
-
-// ================= LOGIN =================
-function loginUser() {
-
-    const username = document.getElementById("loginUsername").value;
+async function loginUser() {
+    const username = document.getElementById("loginUsername").value.trim();
     const password = document.getElementById("loginPassword").value;
 
-    const bodyData = username + "|" + password;
+    if (!username || !password) {
+        showToast("Enter username and password", true);
+        return;
+    }
 
-    fetch(BASE_URL + "/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "text/plain"
-        },
-        body: bodyData
-    })
-    .then(res => res.text())
-    .then(data => {
+    try {
+        const data = await parseResponse(
+            await fetch(`${BASE_URL}/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: `${username}|${password}`
+            })
+        );
 
-        if (data === "SUCCESS") {
-            localStorage.setItem("username", username);
-            alert("Login successful");
-            showDashboard();
-        } else {
-            alert("Invalid credentials");
-        }
-    });
+        localStorage.setItem("username", data.username);
+        localStorage.setItem("authToken", data.token);
+        document.getElementById("loginPassword").value = "";
+        showDashboard();
+        showToast(data.message || "Login successful");
+    } catch (error) {
+        showToast(error.message, true);
+    }
 }
 
-
-// ================= REGISTER =================
-function registerUser() {
-
-    const username = document.getElementById("registerUsername").value;
+async function registerUser() {
+    const username = document.getElementById("registerUsername").value.trim();
     const password = document.getElementById("registerPassword").value;
 
-    const bodyData = username + "|" + password;
+    if (!username || !password) {
+        showToast("Enter username and password", true);
+        return;
+    }
 
-    fetch(BASE_URL + "/register", {
-        method: "POST",
-        headers: {
-            "Content-Type": "text/plain"
-        },
-        body: bodyData
-    })
-    .then(res => res.text())
-    .then(data => alert(data));
+    try {
+        const data = await parseResponse(
+            await fetch(`${BASE_URL}/register`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: `${username}|${password}`
+            })
+        );
+
+        localStorage.setItem("username", data.username);
+        localStorage.setItem("authToken", data.token);
+        document.getElementById("registerPassword").value = "";
+        showDashboard();
+        showToast(data.message || "Registration successful");
+    } catch (error) {
+        showToast(error.message, true);
+    }
 }
 
-
-// ================= DASHBOARD =================
 function showDashboard() {
-
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("dashboardSection").style.display = "block";
 
-    const user = localStorage.getItem("username");
-    document.getElementById("welcomeUser").innerText = "Logged in as: " + user;
+    const user = getStoredUsername();
+    document.getElementById("welcomeUser").innerText = user
+        ? `Logged in as: ${user}`
+        : "";
 
     loadExpenses();
     getSummary();
 }
 
-
-// ================= LOGOUT =================
-function logoutUser() {
-
-    fetch(BASE_URL + "/logout", { method: "POST" });
-
-    localStorage.removeItem("username");
-
+function showLoginScreen() {
     document.getElementById("dashboardSection").style.display = "none";
     document.getElementById("loginSection").style.display = "block";
+    showLogin();
 }
 
+async function logoutUser() {
+    try {
+        await fetch(`${BASE_URL}/logout`, {
+            method: "POST",
+            headers: authHeaders()
+        });
+    } catch (error) {
+        console.error(error);
+    }
 
-// ================= SUMMARY =================
-function getSummary() {
+    clearAuthState();
+    showLoginScreen();
+}
 
-    fetch(BASE_URL + "/summary")
-    .then(res => res.json())
-    .then(data => {
+async function getSummary() {
+    try {
+        const data = await parseResponse(
+            await fetch(`${BASE_URL}/summary`, {
+                headers: authHeaders()
+            })
+        );
 
-        const total = data.total;
-        const budget = data.budget;
-
-        document.getElementById("totalAmount").innerText = total;
-        document.getElementById("budgetAmount").innerText = budget;
-
+        const total = Number(data.total || 0);
+        const budget = Number(data.budget || 0);
         const remaining = budget - total;
-        document.getElementById("remainingAmount").innerText = remaining;
+
+        document.getElementById("totalAmount").innerText = total.toFixed(2);
+        document.getElementById("budgetAmount").innerText = budget.toFixed(2);
+        document.getElementById("remainingAmount").innerText = remaining.toFixed(2);
 
         const warning = document.getElementById("budgetWarning");
 
-        if (remaining < 0) {
-            warning.innerText = "⚠ Budget Exceeded!";
+        if (budget === 0) {
+            warning.innerText = "Set a budget to track your monthly spending";
+            warning.style.color = "#2563eb";
+        } else if (remaining < 0) {
+            warning.innerText = "Budget exceeded";
             warning.style.color = "red";
         } else if (remaining < budget * 0.1) {
-            warning.innerText = "⚠ Only 10% budget left!";
+            warning.innerText = "Only 10% budget left";
             warning.style.color = "orange";
         } else {
-            warning.innerText = "Within Budget";
+            warning.innerText = "Within budget";
             warning.style.color = "green";
         }
 
-        renderChart(data);
-    });
+        renderChart(data.byCategory || {});
+    } catch (error) {
+        if (error.message === "Please login first") {
+            clearAuthState();
+            showLoginScreen();
+        }
+        console.error(error);
+    }
 }
 
-
-// ================= CHART =================
-let chart;
-
-function renderChart(data) {
-
+function renderChart(byCategory) {
     const ctx = document.getElementById("expenseChart").getContext("2d");
 
     if (chart) {
@@ -302,126 +329,84 @@ function renderChart(data) {
     chart = new Chart(ctx, {
         type: "pie",
         data: {
-            labels: Object.keys(data.byCategory),
+            labels: Object.keys(byCategory),
             datasets: [{
-                data: Object.values(data.byCategory)
+                data: Object.values(byCategory)
             }]
         }
     });
 }
 
+async function setBudget() {
+    const budget = document.getElementById("budgetInput").value.trim();
 
-function showMessage(msg) {
-    const div = document.createElement("div");
-    div.innerText = msg;
-    div.style.background = "green";
-    div.style.color = "white";
-    div.style.padding = "10px";
-    div.style.margin = "10px";
-    document.body.appendChild(div);
+    if (!budget) {
+        showToast("Enter a budget amount", true);
+        return;
+    }
 
-    setTimeout(() => div.remove(), 2000);
+    try {
+        const data = await parseResponse(
+            await fetch(`${BASE_URL}/set-budget`, {
+                method: "POST",
+                headers: authHeaders({
+                    "Content-Type": "text/plain"
+                }),
+                body: budget
+            })
+        );
+
+        await getSummary();
+        showToast(data.message || "Budget updated");
+    } catch (error) {
+        showToast(error.message, true);
+    }
 }
 
-// ================= SET BUDGET =================
-function setBudget() {
-
-    const budget = document.getElementById("budgetInput").value;
-
-    fetch(BASE_URL + "/set-budget", {
-        method: "POST",
-        headers: {
-            "Content-Type": "text/plain"
-        },
-        body: budget
-    })
-    .then(res => res.text())
-    .then(() => {
-        alert("Budget updated");
-        getSummary();
-    });
-}
-
-
-// ================= TOGGLE =================
-function showRegister(){
+function showRegister() {
     document.getElementById("registerForm").style.display = "block";
 }
 
-function showLogin(){
+function showLogin() {
     document.getElementById("registerForm").style.display = "none";
 }
 
+async function exportCSV() {
+    try {
+        const expenses = await parseResponse(
+            await fetch(`${BASE_URL}/expenses`, {
+                headers: authHeaders()
+            })
+        );
 
-// ================= AUTO LOGIN =================
-window.onload = function () {
-    const user = localStorage.getItem("username");
-    if (user) {
-        showDashboard();
-    }
-};
-
-
-function showToast(msg) {
-    const div = document.createElement("div");
-    div.innerText = msg;
-    div.style.position = "fixed";
-    div.style.bottom = "20px";
-    div.style.right = "20px";
-    div.style.background = "#22c55e";
-    div.style.color = "white";
-    div.style.padding = "10px";
-    document.body.appendChild(div);
-
-    setTimeout(() => div.remove(), 2000);
-}
-
-
-
-function deleteExpense(timestamp) {
-
-    fetch(BASE_URL + "/deleteExpense/" + timestamp, {
-        method: "DELETE"
-    })
-    .then(res => res.json())
-    .then(data => {
-        showToast("Deleted successfully");
-        loadExpenses();
-    })
-    .catch(err => console.error(err));
-}
-
-
-
-
-
-function exportCSV() {
-
-    fetch(BASE_URL + "/getExpenses")
-    .then(res => res.text())
-    .then(data => {
-
-        if (!data) {
-            alert("No data to export");
+        if (!expenses.length) {
+            showToast("No data to export", true);
             return;
         }
 
-        const rows = data.trim().split("\n");
+        let csv = "Amount,Category,Date,Description\n";
 
-        let csv = "Amount,Category,Description\n";
-
-        for (let i = 0; i < rows.length; i++) {
-            const parts = rows[i].split("|");
-
-            csv += `${parts[0]},${parts[1]},${parts[2]}\n`;
+        for (const expense of expenses) {
+            const safeDescription = `"${(expense.description || "").replace(/"/g, '""')}"`;
+            csv += `${expense.amount},${expense.category},${expense.date},${safeDescription}\n`;
         }
 
         const blob = new Blob([csv], { type: "text/csv" });
         const url = window.URL.createObjectURL(blob);
-
         const a = document.createElement("a");
         a.href = url;
         a.download = "expenses.csv";
         a.click();
-    });
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        showToast(error.message, true);
+    }
 }
+
+window.onload = function () {
+    if (getAuthToken() && getStoredUsername()) {
+        showDashboard();
+    } else {
+        showLoginScreen();
+    }
+};

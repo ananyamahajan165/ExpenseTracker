@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.UUID;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
@@ -25,6 +26,7 @@ public class ExpenseTracker {
 
     static Scanner sc = new Scanner(System.in);
     static String loggedInUser = null;
+    static final Map<String, String> activeSessions = new HashMap<>();
 
     static final String USER_FILE = "data/users.txt";
     static final String EXPENSE_FILE = "data/expenses.txt";
@@ -63,6 +65,10 @@ static void startServer() {
 
     
     try {
+        ensureFileExists(USER_FILE);
+        ensureFileExists(EXPENSE_FILE);
+        ensureFileExists(BUDGET_FILE);
+
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9080"));
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
@@ -108,19 +114,41 @@ server.createContext("/set-budget", exchange -> {
     enableCors(exchange);
 
     if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
-        sendJson(exchange, 200, "{\"status\":\"success\"}");
+        sendJson(exchange, 405,
+            "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
         return;
     }
 
-    String body = new String(exchange.getRequestBody().readAllBytes());
-
-    try(FileWriter fw = new FileWriter(BUDGET_FILE)){
-
-        fw.write(body);
-
+    String username = getAuthenticatedUser(exchange);
+    if (username == null) {
+        sendJson(exchange, 401,
+            "{\"status\":\"error\",\"message\":\"Please login first\"}");
+        return;
     }
 
-    sendJson(exchange,200,"{\"status\":\"success\"}");
+    String body = new String(exchange.getRequestBody().readAllBytes()).trim();
+
+    if (body.isEmpty()) {
+        sendJson(exchange, 400,
+            "{\"status\":\"error\",\"message\":\"Budget is required\"}");
+        return;
+    }
+
+    try {
+        double budgetValue = Double.parseDouble(body);
+        upsertBudget(username, budgetValue);
+    } catch (NumberFormatException e) {
+        sendJson(exchange, 400,
+            "{\"status\":\"error\",\"message\":\"Budget must be a number\"}");
+        return;
+    } catch (IOException e) {
+        sendJson(exchange, 500,
+            "{\"status\":\"error\",\"message\":\"Failed to save budget\"}");
+        return;
+    }
+
+    sendJson(exchange, 200,
+        "{\"status\":\"success\",\"message\":\"Budget updated\"}");
 
 });
 
@@ -134,6 +162,13 @@ server.createContext("/summary", exchange -> {
     if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
         sendJson(exchange, 405,
             "{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+        return;
+    }
+
+    String username = getAuthenticatedUser(exchange);
+    if (username == null) {
+        sendJson(exchange, 401,
+            "{\"status\":\"error\",\"message\":\"Please login first\"}");
         return;
     }
 
@@ -151,7 +186,7 @@ server.createContext("/summary", exchange -> {
 
                 String[] parts = line.split("\\|");
 
-                if (parts.length < 4) continue;
+                if (parts.length < 6 || !parts[0].equals(username)) continue;
 
                 try {
 
@@ -172,16 +207,7 @@ server.createContext("/summary", exchange -> {
         }
 
         // -------- READ BUDGET --------
-        double budget = 0;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(BUDGET_FILE))) {
-            String line = br.readLine();
-            if (line != null) {
-                budget = Double.parseDouble(line);
-            }
-        } catch (Exception e) {
-            budget = 0;
-        }
+        double budget = getBudgetForUser(username);
 
         // -------- BUILD JSON RESPONSE --------
         StringBuilder json = new StringBuilder();
@@ -239,6 +265,12 @@ server.createContext("/register", exchange -> {
         String username = parts[0].toLowerCase();
         String password = parts[1];
 
+        if (username.isBlank() || password.isBlank()) {
+            sendJson(exchange, 400,
+                "{\"status\":\"error\",\"message\":\"Username and password are required\"}");
+            return;
+        }
+
         if (userExists(username)) {
             sendJson(exchange, 400,
                 "{\"status\":\"error\",\"message\":\"User already exists\"}");
@@ -251,8 +283,10 @@ server.createContext("/register", exchange -> {
             fw.write(username + "|" + hashed + "\n");
         }
 
+        String token = createSession(username);
         sendJson(exchange, 200,
-            "{\"status\":\"success\",\"message\":\"Registration successful\"}");
+            "{\"status\":\"success\",\"message\":\"Registration successful\",\"username\":\""
+            + escapeJson(username) + "\",\"token\":\"" + token + "\"}");
 
     } catch (Exception e) {
         e.printStackTrace();
@@ -310,11 +344,10 @@ server.createContext("/login", exchange -> {
     return;
 }
 
-loggedInUser = username; 
-
+        String token = createSession(username);
         sendJson(exchange, 200,
     "{\"status\":\"success\",\"message\":\"Login successful\",\"username\":\""
-    + username + "\"}");
+    + escapeJson(username) + "\",\"token\":\"" + token + "\"}");
 
     } catch (Exception e) {
         e.printStackTrace();
@@ -337,11 +370,12 @@ server.createContext("/expenses", exchange -> {
         return;
     }
 
-    if (loggedInUser == null) {
-    sendJson(exchange, 401,
-        "{\"status\":\"error\",\"message\":\"Please login first\"}");
-    return;
-}
+    String username = getAuthenticatedUser(exchange);
+    if (username == null) {
+        sendJson(exchange, 401,
+            "{\"status\":\"error\",\"message\":\"Please login first\"}");
+        return;
+    }
 
     try {
         StringBuilder json = new StringBuilder();
@@ -357,9 +391,7 @@ while ((line = br.readLine()) != null) {
     String[] parts = line.split("\\|");
 
     if (parts.length >= 6) {
-
-        // ✅ FILTER BY LOGGED IN USER
-        if (loggedInUser == null || !parts[0].equals(loggedInUser)) {
+        if (!parts[0].equals(username)) {
             continue;
         }
 
@@ -368,10 +400,10 @@ while ((line = br.readLine()) != null) {
 
         json.append("{")
             .append("\"amount\":").append(parts[1]).append(",")
-            .append("\"category\":\"").append(parts[2]).append("\",")
-            .append("\"date\":\"").append(parts[3]).append("\",")
-            .append("\"timestamp\":\"").append(parts[4]).append("\",")
-            .append("\"description\":\"").append(parts[5]).append("\"")
+            .append("\"category\":\"").append(escapeJson(parts[2])).append("\",")
+            .append("\"date\":\"").append(escapeJson(parts[3])).append("\",")
+            .append("\"timestamp\":\"").append(escapeJson(parts[4])).append("\",")
+            .append("\"description\":\"").append(escapeJson(parts[5])).append("\"")
             .append("}");
     }
 }
@@ -401,6 +433,13 @@ server.createContext("/deleteExpense", exchange -> {
         return;
     }
 
+    String username = getAuthenticatedUser(exchange);
+    if (username == null) {
+        sendJson(exchange, 401,
+            "{\"status\":\"error\",\"message\":\"Please login first\"}");
+        return;
+    }
+
     try {
         String path = exchange.getRequestURI().getPath();
         String[] parts = path.split("/");
@@ -424,6 +463,11 @@ server.createContext("/deleteExpense", exchange -> {
             String[] data = line.split("\\|");
 
             if (data.length >= 6) {
+                if (!data[0].equals(username)) {
+                    updatedLines.add(line);
+                    continue;
+                }
+
                 String timestamp = data[4];
 
                 if (!timestamp.equals(timestampToDelete)) {
@@ -470,17 +514,16 @@ server.createContext("/add-expense", exchange -> {
         return;
     }
 
-    if (loggedInUser == null) {
-    sendJson(exchange, 401,
-        "{\"status\":\"error\",\"message\":\"Please login first\"}");
-    return;
-}
+    String username = getAuthenticatedUser(exchange);
+    if (username == null) {
+        sendJson(exchange, 401,
+            "{\"status\":\"error\",\"message\":\"Please login first\"}");
+        return;
+    }
 
     try {
 
         String body = new String(exchange.getRequestBody().readAllBytes());
-        System.out.println("RAW BODY: [" + body + "]");
-        System.out.println("Received body: " + body); // DEBUG
 
         String[] parts = body.split("\\|");
 
@@ -498,7 +541,7 @@ server.createContext("/add-expense", exchange -> {
         LocalDateTime timestamp = LocalDateTime.now();
 
         String record =
-                "webuser|" +
+                username + "|" +
                 amount + "|" +
                 category + "|" +
                 date + "|" +
@@ -533,7 +576,10 @@ server.createContext("/logout", exchange -> {
         return;
     }
 
-    loggedInUser = null;
+    String token = getAuthToken(exchange);
+    if (token != null) {
+        activeSessions.remove(token);
+    }
 
     sendJson(exchange, 200,
         "{\"status\":\"success\",\"message\":\"Logged out successfully\"}");
@@ -1120,6 +1166,91 @@ while (cat == null) {
         } catch (Exception e) {
         }
         return false;
+    }
+
+    static String createSession(String username) {
+        String token = UUID.randomUUID().toString();
+        activeSessions.put(token, username);
+        return token;
+    }
+
+    static String getAuthToken(HttpExchange exchange) {
+        String header = exchange.getRequestHeaders().getFirst("Authorization");
+        if (header == null) {
+            return null;
+        }
+
+        if (header.startsWith("Bearer ")) {
+            return header.substring(7).trim();
+        }
+
+        return header.trim();
+    }
+
+    static String getAuthenticatedUser(HttpExchange exchange) {
+        String token = getAuthToken(exchange);
+        if (token == null || token.isEmpty()) {
+            return null;
+        }
+        return activeSessions.get(token);
+    }
+
+    static double getBudgetForUser(String username) {
+        try (BufferedReader br = new BufferedReader(new FileReader(BUDGET_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split("\\|");
+                if (parts.length == 2 && parts[0].equals(username)) {
+                    return Double.parseDouble(parts[1]);
+                }
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+
+        return 0;
+    }
+
+    static void upsertBudget(String username, double budgetValue) throws IOException {
+        List<String> budgets = new ArrayList<>();
+        boolean updated = false;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(BUDGET_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.isBlank()) {
+                    continue;
+                }
+
+                String[] parts = line.split("\\|");
+                if (parts.length == 2 && parts[0].equals(username)) {
+                    budgets.add(username + "|" + budgetValue);
+                    updated = true;
+                } else {
+                    budgets.add(line);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            // File is created later when writing.
+        }
+
+        if (!updated) {
+            budgets.add(username + "|" + budgetValue);
+        }
+
+        try (FileWriter fw = new FileWriter(BUDGET_FILE)) {
+            for (String line : budgets) {
+                fw.write(line + "\n");
+            }
+        }
+    }
+
+    static String escapeJson(String value) {
+        return value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r");
     }
 
 
