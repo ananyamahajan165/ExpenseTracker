@@ -262,8 +262,8 @@ server.createContext("/register", exchange -> {
             return;
         }
 
-        String username = parts[0].toLowerCase();
-        String password = parts[1];
+        String username = parts[0].trim().toLowerCase();
+        String password = parts[1].trim();
 
         if (username.isBlank() || password.isBlank()) {
             sendJson(exchange, 400,
@@ -319,8 +319,8 @@ server.createContext("/login", exchange -> {
             return;
         }
 
-        String username = parts[0].toLowerCase();
-        String password = parts[1];
+        String username = parts[0].trim().toLowerCase();
+        String password = parts[1].trim();
         String hashed = hashPassword(password);
 
         boolean valid = false;
