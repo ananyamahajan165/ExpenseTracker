@@ -1,7 +1,5 @@
 const BASE_URL = "http://localhost:9080";
 
-let chart;
-
 function getSelectedMonth() {
     const month = document.getElementById("monthSelector")?.value;
     return month || new Date().toISOString().slice(0, 7);
@@ -361,7 +359,6 @@ async function getSummary() {
             warning.style.color = "green";
         }
 
-        renderChart(data.byCategory || {});
     } catch (error) {
         if (error.message === "Please login first") {
             clearAuthState();
@@ -369,24 +366,6 @@ async function getSummary() {
         }
         console.error(error);
     }
-}
-
-function renderChart(byCategory) {
-    const ctx = document.getElementById("expenseChart").getContext("2d");
-
-    if (chart) {
-        chart.destroy();
-    }
-
-    chart = new Chart(ctx, {
-        type: "pie",
-        data: {
-            labels: Object.keys(byCategory),
-            datasets: [{
-                data: Object.values(byCategory)
-            }]
-        }
-    });
 }
 
 async function setBudget() {
