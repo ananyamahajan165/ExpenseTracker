@@ -1244,10 +1244,6 @@ while (cat == null) {
                     parts[1].equals(month)) {
                     return Double.parseDouble(parts[2]);
                 }
-
-                if (parts.length == 2 && parts[0].equals(username)) {
-                    return Double.parseDouble(parts[1]);
-                }
             }
         } catch (Exception e) {
             return 0;
