@@ -81,6 +81,14 @@
 
     </div>
 
+    <div class="card">
+      <h2>Monthly View</h2>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <label for="monthSelector">Select Month</label>
+        <input type="month" id="monthSelector" onchange="handleMonthChange()">
+      </div>
+    </div>
+
     <!-- BUDGET -->
     <div class="card">
       <h2>Set Monthly Budget</h2>
@@ -110,6 +118,8 @@
         <input type="number" id="amount" placeholder="Amount">
 
         <input type="text" id="description" placeholder="Description">
+
+        <input type="date" id="expenseDate">
 
         <button type="button" onclick="addExpense()">Add</button>
 

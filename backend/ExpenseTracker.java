@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -135,11 +136,26 @@ server.createContext("/set-budget", exchange -> {
     }
 
     try {
-        double budgetValue = Double.parseDouble(body);
-        upsertBudget(username, budgetValue);
+        String[] parts = body.split("\\|");
+        double budgetValue;
+        String month;
+
+        if (parts.length >= 2) {
+            month = normalizeMonth(parts[0]);
+            budgetValue = Double.parseDouble(parts[1].trim());
+        } else {
+            month = YearMonth.now().toString();
+            budgetValue = Double.parseDouble(body);
+        }
+
+        upsertBudget(username, month, budgetValue);
     } catch (NumberFormatException e) {
         sendJson(exchange, 400,
             "{\"status\":\"error\",\"message\":\"Budget must be a number\"}");
+        return;
+    } catch (IllegalArgumentException e) {
+        sendJson(exchange, 400,
+            "{\"status\":\"error\",\"message\":\"Invalid month\"}");
         return;
     } catch (IOException e) {
         sendJson(exchange, 500,
@@ -172,6 +188,15 @@ server.createContext("/summary", exchange -> {
         return;
     }
 
+    String monthFilter;
+    try {
+        monthFilter = getRequestedMonth(exchange);
+    } catch (IllegalArgumentException e) {
+        sendJson(exchange, 400,
+            "{\"status\":\"error\",\"message\":\"Invalid month\"}");
+        return;
+    }
+
     try {
 
         Map<String, Double> categoryTotals = new HashMap<>();
@@ -187,6 +212,7 @@ server.createContext("/summary", exchange -> {
                 String[] parts = line.split("\\|");
 
                 if (parts.length < 6 || !parts[0].equals(username)) continue;
+                if (!parts[3].startsWith(monthFilter)) continue;
 
                 try {
 
@@ -207,7 +233,7 @@ server.createContext("/summary", exchange -> {
         }
 
         // -------- READ BUDGET --------
-        double budget = getBudgetForUser(username);
+        double budget = getBudgetForUser(username, monthFilter);
 
         // -------- BUILD JSON RESPONSE --------
         StringBuilder json = new StringBuilder();
@@ -377,6 +403,15 @@ server.createContext("/expenses", exchange -> {
         return;
     }
 
+    String monthFilter;
+    try {
+        monthFilter = getRequestedMonth(exchange);
+    } catch (IllegalArgumentException e) {
+        sendJson(exchange, 400,
+            "{\"status\":\"error\",\"message\":\"Invalid month\"}");
+        return;
+    }
+
     try {
         StringBuilder json = new StringBuilder();
         json.append("[");
@@ -392,6 +427,10 @@ while ((line = br.readLine()) != null) {
 
     if (parts.length >= 6) {
         if (!parts[0].equals(username)) {
+            continue;
+        }
+
+        if (!parts[3].startsWith(monthFilter)) {
             continue;
         }
 
@@ -536,8 +575,9 @@ server.createContext("/add-expense", exchange -> {
         double amount = Double.parseDouble(parts[0]);
         String category = parts[1];
         String description = parts[2];
-
-        LocalDate date = LocalDate.now();
+        LocalDate date = parts.length >= 4 && !parts[3].trim().isEmpty()
+            ? LocalDate.parse(parts[3].trim())
+            : LocalDate.now();
         LocalDateTime timestamp = LocalDateTime.now();
 
         String record =
@@ -1195,11 +1235,17 @@ while (cat == null) {
         return activeSessions.get(token);
     }
 
-    static double getBudgetForUser(String username) {
+    static double getBudgetForUser(String username, String month) {
         try (BufferedReader br = new BufferedReader(new FileReader(BUDGET_FILE))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split("\\|");
+                if (parts.length == 3 &&
+                    parts[0].equals(username) &&
+                    parts[1].equals(month)) {
+                    return Double.parseDouble(parts[2]);
+                }
+
                 if (parts.length == 2 && parts[0].equals(username)) {
                     return Double.parseDouble(parts[1]);
                 }
@@ -1211,7 +1257,7 @@ while (cat == null) {
         return 0;
     }
 
-    static void upsertBudget(String username, double budgetValue) throws IOException {
+    static void upsertBudget(String username, String month, double budgetValue) throws IOException {
         List<String> budgets = new ArrayList<>();
         boolean updated = false;
 
@@ -1223,8 +1269,10 @@ while (cat == null) {
                 }
 
                 String[] parts = line.split("\\|");
-                if (parts.length == 2 && parts[0].equals(username)) {
-                    budgets.add(username + "|" + budgetValue);
+                if (parts.length == 3 &&
+                    parts[0].equals(username) &&
+                    parts[1].equals(month)) {
+                    budgets.add(username + "|" + month + "|" + budgetValue);
                     updated = true;
                 } else {
                     budgets.add(line);
@@ -1235,7 +1283,7 @@ while (cat == null) {
         }
 
         if (!updated) {
-            budgets.add(username + "|" + budgetValue);
+            budgets.add(username + "|" + month + "|" + budgetValue);
         }
 
         try (FileWriter fw = new FileWriter(BUDGET_FILE)) {
@@ -1251,6 +1299,26 @@ while (cat == null) {
             .replace("\"", "\\\"")
             .replace("\n", "\\n")
             .replace("\r", "\\r");
+    }
+
+    static String getRequestedMonth(HttpExchange exchange) {
+        String query = exchange.getRequestURI().getQuery();
+        if (query == null || query.isBlank()) {
+            return YearMonth.now().toString();
+        }
+
+        for (String part : query.split("&")) {
+            String[] pair = part.split("=", 2);
+            if (pair.length == 2 && pair[0].equals("month")) {
+                return normalizeMonth(pair[1]);
+            }
+        }
+
+        return YearMonth.now().toString();
+    }
+
+    static String normalizeMonth(String month) {
+        return YearMonth.parse(month.trim()).toString();
     }
 
 
