@@ -2,6 +2,27 @@ const BASE_URL = "http://localhost:9080";
 
 let chart;
 
+function getSelectedMonth() {
+    const month = document.getElementById("monthSelector")?.value;
+    return month || new Date().toISOString().slice(0, 7);
+}
+
+function setDefaultDates() {
+    const today = new Date().toISOString().slice(0, 10);
+    const currentMonth = today.slice(0, 7);
+
+    const monthSelector = document.getElementById("monthSelector");
+    const expenseDate = document.getElementById("expenseDate");
+
+    if (monthSelector && !monthSelector.value) {
+        monthSelector.value = currentMonth;
+    }
+
+    if (expenseDate && !expenseDate.value) {
+        expenseDate.value = today;
+    }
+}
+
 function getAuthToken() {
     return localStorage.getItem("authToken");
 }
@@ -41,6 +62,7 @@ function resetExpenseForm() {
     document.getElementById("amount").value = "";
     document.getElementById("category").value = "";
     document.getElementById("description").value = "";
+    document.getElementById("expenseDate").value = `${getSelectedMonth()}-01`;
 }
 
 function clearAuthState() {
@@ -99,7 +121,7 @@ function renderExpenses(expenseList) {
 async function loadExpenses() {
     try {
         const expenses = await parseResponse(
-            await fetch(`${BASE_URL}/expenses`, {
+            await fetch(`${BASE_URL}/expenses?month=${encodeURIComponent(getSelectedMonth())}`, {
                 headers: authHeaders()
             })
         );
@@ -139,8 +161,9 @@ async function addExpense() {
     const amount = document.getElementById("amount").value.trim();
     const category = document.getElementById("category").value;
     const description = document.getElementById("description").value.trim();
+    const expenseDate = document.getElementById("expenseDate").value;
 
-    if (!amount || !category || !description) {
+    if (!amount || !category || !description || !expenseDate) {
         showToast("Please fill all expense fields", true);
         return;
     }
@@ -152,7 +175,7 @@ async function addExpense() {
                 headers: authHeaders({
                     "Content-Type": "text/plain"
                 }),
-                body: `${amount}|${category}|${description}`
+                body: `${amount}|${category}|${description}|${expenseDate}`
             })
         );
 
@@ -280,7 +303,7 @@ async function logoutUser() {
 async function getSummary() {
     try {
         const data = await parseResponse(
-            await fetch(`${BASE_URL}/summary`, {
+            await fetch(`${BASE_URL}/summary?month=${encodeURIComponent(getSelectedMonth())}`, {
                 headers: authHeaders()
             })
         );
@@ -352,7 +375,7 @@ async function setBudget() {
                 headers: authHeaders({
                     "Content-Type": "text/plain"
                 }),
-                body: budget
+                body: `${getSelectedMonth()}|${budget}`
             })
         );
 
@@ -371,10 +394,16 @@ function showLogin() {
     document.getElementById("registerForm").style.display = "none";
 }
 
+function handleMonthChange() {
+    document.getElementById("expenseDate").value = `${getSelectedMonth()}-01`;
+    loadExpenses();
+    getSummary();
+}
+
 async function exportCSV() {
     try {
         const expenses = await parseResponse(
-            await fetch(`${BASE_URL}/expenses`, {
+            await fetch(`${BASE_URL}/expenses?month=${encodeURIComponent(getSelectedMonth())}`, {
                 headers: authHeaders()
             })
         );
@@ -404,6 +433,7 @@ async function exportCSV() {
 }
 
 window.onload = function () {
+    setDefaultDates();
     if (getAuthToken() && getStoredUsername()) {
         showDashboard();
     } else {
