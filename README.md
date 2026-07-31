@@ -14,6 +14,7 @@ A full-stack expense tracker built with a Java backend and a simple HTML/CSS/Jav
 - Separate data per user
   
 ## Tech Stack
+
 - Backend: Core Java with `HttpServer`
 - Frontend: HTML, CSS, JavaScript
 - Storage: Plain text files in `data/`
