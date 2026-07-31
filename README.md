@@ -20,6 +20,7 @@ A full-stack expense tracker built with a Java backend and a simple HTML/CSS/Jav
 - Storage: Plain text files in `data/`
 
 ## Project Structure
+
 ExpenseTracker/
 ├── backend/
 │   ├── ExpenseTracker.java
